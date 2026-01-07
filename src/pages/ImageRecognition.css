@@ -1,0 +1,39 @@
+.image-recognition {
+  padding: 20px 0;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.upload-card {
+  min-height: 400px;
+}
+
+.result-card {
+  min-height: 400px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.empty-result {
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+}
+
+.result-content {
+  padding: 20px 0;
+}
+
+.species-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.species-features ul {
+  padding-left: 20px;
+}

@@ -1,0 +1,22 @@
+.dashboard {
+  padding: 20px 0;
+}
+
+.dashboard-header {
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.function-card {
+  height: 100%;
+  text-align: center;
+}
+
+.card-icon {
+  padding: 20px;
+  background-color: #f0f2f5;
+}

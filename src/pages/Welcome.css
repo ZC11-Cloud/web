@@ -1,0 +1,66 @@
+.welcome-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+.welcome-header .logo {
+  display: flex;
+  align-items: center;
+}
+.logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1890ff;
+  margin-left: 10px;
+}
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+.nav-links a {
+  font-size: 16px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+}
+.nav-links a:hover {
+  color: #1890ff;
+}
+
+.welcome-banner {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  padding: 120px 40px 100px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+.welcome-features {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.feature-icon {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.welcome-footer {
+  background-color: #f0f2f5;
+  padding: 20px 40px;
+  margin-top: auto;
+}
