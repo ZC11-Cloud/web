@@ -28,10 +28,30 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [
-    { key: '/dashboard', icon: <HomeOutlined />, label: '控制台首页', path: '/dashboard' },
-    { key: '/dashboard/ai-chat', icon: <MessageOutlined />, label: 'AI智能咨询', path: '/dashboard/ai-chat' },
-    { key: '/dashboard/image-recognition', icon: <UploadOutlined />, label: '图像识别', path: '/dashboard/image-recognition' },
-    { key: '/dashboard/knowledge-base', icon: <BookOutlined />, label: '知识库', path: '/dashboard/knowledge-base' },
+    {
+      key: '/dashboard',
+      icon: <HomeOutlined />,
+      label: '控制台首页',
+      path: '/dashboard',
+    },
+    {
+      key: '/dashboard/ai-chat',
+      icon: <MessageOutlined />,
+      label: 'AI智能咨询',
+      path: '/dashboard/ai-chat',
+    },
+    {
+      key: '/dashboard/image-recognition',
+      icon: <UploadOutlined />,
+      label: '图像识别',
+      path: '/dashboard/image-recognition',
+    },
+    {
+      key: '/dashboard/knowledge-base',
+      icon: <BookOutlined />,
+      label: '知识库',
+      path: '/dashboard/knowledge-base',
+    },
   ];
 
   const { logout: logoutStore } = useUserStore();
@@ -53,14 +73,20 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         collapsedWidth="0"
       >
         <div className="logo">
-          <CiOutlined style={{ fontSize: '24px', color: '#1890ff', marginRight: '10px' }} />
-          {!collapsed && <Title level={4} style={{ margin: 0, color: '#fff' }}>AquaMind</Title>}
+          <CiOutlined
+            style={{ fontSize: '24px', color: '#1890ff', marginRight: '10px' }}
+          />
+          {!collapsed && (
+            <Title level={4} style={{ margin: 0, color: '#fff' }}>
+              AquaMind
+            </Title>
+          )}
         </div>
         <Menu
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
-          items={menuItems.map(item => ({
+          items={menuItems.map((item) => ({
             key: item.path,
             icon: item.icon,
             label: <Link to={item.path}>{item.label}</Link>,
@@ -71,7 +97,11 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       <Layout className="console-main">
         <Header className="console-header">
           <div className="header-left">
-            {!collapsed && <Title level={4} style={{ margin: 0, color: '#fff' }}>控制台</Title>}
+            {!collapsed && (
+              <Title level={4} style={{ margin: 0, color: '#fff' }}>
+                控制台
+              </Title>
+            )}
           </div>
           <div className="header-right">
             <Space>
@@ -89,9 +119,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         </Header>
 
         <Content className="console-content">
-          <div className="content-wrapper">
-            {children}
-          </div>
+          <div className="content-wrapper">{children}</div>
         </Content>
       </Layout>
     </Layout>

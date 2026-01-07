@@ -1,37 +1,41 @@
-import axios from 'axios'
-import { message } from 'antd'
+import axios from 'axios';
+import { message } from 'antd';
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
-})
+});
 
 //请求拦截器
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 //响应拦截器
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log('response', response)
-    if (response.config.url?.includes('/user/login') && response.status === 200) {
-      const token = response.data.access_token
-      localStorage.setItem('token', token)
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    console.log('response', response);
+    if (
+      response.config.url?.includes('/user/login') &&
+      response.status === 200
+    ) {
+      const token = response.data.access_token;
+      localStorage.setItem('token', token);
+      axiosInstance.defaults.headers.common['Authorization'] =
+        `Bearer ${token}`;
     }
-    return response.data
+    return response.data;
   },
   (error) => {
     // 统一错误处理
@@ -65,8 +69,8 @@ axiosInstance.interceptors.response.use(
     } else {
       message.error('请求失败');
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
-export default axiosInstance
+export default axiosInstance;

@@ -50,13 +50,13 @@ const userApi = {
 
   // 用户登录
   login: (params: LoginParams): Promise<LoginResponse> => {
-    const formData = new URLSearchParams()
+    const formData = new URLSearchParams();
     formData.append('username', params.username);
     formData.append('password', params.password);
     return axiosInstance.post('/user/login', formData, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-      }
+      },
     });
   },
 

@@ -55,7 +55,8 @@ const AIChat = () => {
     setTimeout(() => {
       const newAIMessage: Message = {
         id: messages.length + 2,
-        content: '这是一个模拟的AI回复。水生生物图像识别与智能咨询平台正在为您服务！',
+        content:
+          '这是一个模拟的AI回复。水生生物图像识别与智能咨询平台正在为您服务！',
         sender: 'ai',
         timestamp: new Date(),
       };
@@ -63,7 +64,7 @@ const AIChat = () => {
     }, 1000);
   };
 
-  const handleUpload = (file: any) => {
+  const handleUpload = () => {
     message.success('图片上传成功！');
     // 后端交互暂不实现
     return false; // 阻止自动上传
@@ -86,13 +87,19 @@ const AIChat = () => {
               <List.Item className={`message-item ${item.sender}`}>
                 <List.Item.Meta
                   avatar={
-                    <Avatar icon={item.sender === 'user' ? <UserOutlined /> : <MessageOutlined />} />
+                    <Avatar
+                      icon={
+                        item.sender === 'user' ? (
+                          <UserOutlined />
+                        ) : (
+                          <MessageOutlined />
+                        )
+                      }
+                    />
                   }
                   title={item.sender === 'user' ? '我' : 'AquaMind'}
                   description={
-                    <Card className="message-card">
-                      {item.content}
-                    </Card>
+                    <Card className="message-card">{item.content}</Card>
                   }
                 />
               </List.Item>

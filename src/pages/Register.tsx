@@ -1,17 +1,17 @@
-import { Button, Card, Form, Input, Typography, Row, Col, message } from "antd";
+import { Button, Card, Form, Input, Typography, Row, Col, message } from 'antd';
 import {
   CiOutlined,
   UserOutlined,
   LockOutlined,
   MailOutlined,
   PhoneOutlined,
-} from "@ant-design/icons";
-import { Link } from "react-router-dom";
-import "./Register.css";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import userApi from "../api/userApi";
-import type { RegisterParams } from "../api/userApi";
+} from '@ant-design/icons';
+import { Link } from 'react-router-dom';
+import './Register.css';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import userApi from '../api/userApi';
+import type { RegisterParams } from '../api/userApi';
 const { Title, Paragraph } = Typography;
 
 const Register = () => {
@@ -30,8 +30,8 @@ const Register = () => {
       };
       await userApi.register(registerParams);
 
-      message.success("注册成功！");
-      navigate("/login");
+      message.success('注册成功！');
+      navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -39,17 +39,17 @@ const Register = () => {
 
   return (
     <div className="register-container">
-      <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
+      <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
         <Col xs={24} sm={18} md={14} lg={10}>
           <Card className="register-card">
             <div className="register-header">
               <div className="logo">
-                <CiOutlined style={{ fontSize: "32px", color: "#1890ff" }} />
-                <Title level={2} style={{ margin: 0, marginLeft: "10px" }}>
+                <CiOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
+                <Title level={2} style={{ margin: 0, marginLeft: '10px' }}>
                   AquaMind
                 </Title>
               </div>
-              <Paragraph style={{ margin: "10px 0 30px 0", color: "#666" }}>
+              <Paragraph style={{ margin: '10px 0 30px 0', color: '#666' }}>
                 创建账号，开始探索水生生物世界
               </Paragraph>
             </div>
@@ -65,7 +65,7 @@ const Register = () => {
                   <Form.Item
                     name="username"
                     label="用户名"
-                    rules={[{ required: true, message: "请输入用户名！" }]}
+                    rules={[{ required: true, message: '请输入用户名！' }]}
                   >
                     <Input
                       prefix={<UserOutlined className="site-form-item-icon" />}
@@ -77,7 +77,7 @@ const Register = () => {
                   <Form.Item
                     name="real_name"
                     label="真实姓名"
-                    rules={[{ required: true, message: "请输入真实姓名！" }]}
+                    rules={[{ required: true, message: '请输入真实姓名！' }]}
                   >
                     <Input placeholder="请输入真实姓名" />
                   </Form.Item>
@@ -88,8 +88,8 @@ const Register = () => {
                 name="email"
                 label="邮箱"
                 rules={[
-                  { required: true, message: "请输入邮箱！" },
-                  { type: "email", message: "请输入有效的邮箱地址！" },
+                  { required: true, message: '请输入邮箱！' },
+                  { type: 'email', message: '请输入有效的邮箱地址！' },
                 ]}
               >
                 <Input
@@ -102,10 +102,10 @@ const Register = () => {
                 name="phone"
                 label="手机号码"
                 rules={[
-                  { required: true, message: "请输入手机号码！" },
+                  { required: true, message: '请输入手机号码！' },
                   {
                     pattern: /^1[3-9]\d{9}$/,
-                    message: "请输入有效的手机号码！",
+                    message: '请输入有效的手机号码！',
                   },
                 ]}
               >
@@ -119,8 +119,8 @@ const Register = () => {
                 name="password"
                 label="密码"
                 rules={[
-                  { required: true, message: "请输入密码！" },
-                  { min: 6, message: "密码长度不能少于6个字符！" },
+                  { required: true, message: '请输入密码！' },
+                  { min: 6, message: '密码长度不能少于6个字符！' },
                 ]}
               >
                 <Input.Password
@@ -132,16 +132,16 @@ const Register = () => {
               <Form.Item
                 name="confirmPassword"
                 label="确认密码"
-                dependencies={["password"]}
+                dependencies={['password']}
                 rules={[
-                  { required: true, message: "请确认密码！" },
+                  { required: true, message: '请确认密码！' },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      if (!value || getFieldValue("password") === value) {
+                      if (!value || getFieldValue('password') === value) {
                         return Promise.resolve();
                       }
                       return Promise.reject(
-                        new Error("两次输入的密码不一致！")
+                        new Error('两次输入的密码不一致！')
                       );
                     },
                   }),
@@ -177,7 +177,7 @@ const Register = () => {
                 </Button>
               </Form.Item>
 
-              <Paragraph style={{ textAlign: "center", marginTop: "20px" }}>
+              <Paragraph style={{ textAlign: 'center', marginTop: '20px' }}>
                 已有账号？ <Link to="/login">立即登录</Link>
               </Paragraph>
             </Form>

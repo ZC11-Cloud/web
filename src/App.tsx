@@ -10,7 +10,7 @@ const App = () => {
         token: {
           colorPrimary: '#1890FF',
           borderRadius: 8,
-        }
+        },
       }}
     >
       <Outlet></Outlet>

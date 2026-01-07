@@ -41,14 +41,14 @@ const ImageRecognition = () => {
         message.error('图片大小不能超过2MB！');
         return false;
       }
-      
+
       // 显示图片预览
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
         setImageUrl(reader.result as string);
       };
-      
+
       return false; // 阻止自动上传
     },
   };
@@ -60,7 +60,7 @@ const ImageRecognition = () => {
     }
 
     setLoading(true);
-    
+
     // 模拟识别过程
     setTimeout(() => {
       // 模拟识别结果
@@ -69,12 +69,13 @@ const ImageRecognition = () => {
         scientificName: 'Acipenser sinensis',
         confidence: 0.98,
         category: '鱼类',
-        description: '中华鲟是中国特有的大型溯河洄游性鱼类，属于国家一级保护动物，主要分布在长江流域。',
+        description:
+          '中华鲟是中国特有的大型溯河洄游性鱼类，属于国家一级保护动物，主要分布在长江流域。',
         habitat: '长江、黄河、珠江等大型河流',
         status: '极危(CR)',
         features: ['身体呈纺锤形', '吻部尖长', '体表无鳞', '有5行骨板'],
       });
-      
+
       setLoading(false);
       message.success('识别完成！');
     }, 2000);
@@ -84,7 +85,9 @@ const ImageRecognition = () => {
     <div className="image-recognition">
       <div className="page-header">
         <Title level={3}>图像识别</Title>
-        <Paragraph style={{ color: '#666' }}>上传水生生物图像，AI快速识别物种信息</Paragraph>
+        <Paragraph style={{ color: '#666' }}>
+          上传水生生物图像，AI快速识别物种信息
+        </Paragraph>
       </div>
 
       <Row gutter={[32, 32]} align="top">
@@ -92,7 +95,9 @@ const ImageRecognition = () => {
           <Card title="上传图片" className="upload-card">
             <Dragger {...uploadProps}>
               <p className="ant-upload-drag-icon">
-                <UploadOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+                <UploadOutlined
+                  style={{ fontSize: '48px', color: '#1890ff' }}
+                />
               </p>
               <p className="ant-upload-text">点击或拖拽文件到此处上传</p>
               <p className="ant-upload-hint">
@@ -102,22 +107,28 @@ const ImageRecognition = () => {
 
             {imageUrl && (
               <div className="image-preview">
-                <Title level={5} style={{ margin: '20px 0 10px 0' }}>图片预览</Title>
-                <img src={imageUrl} alt="预览" style={{ width: '100%', borderRadius: 8 }} />
+                <Title level={5} style={{ margin: '20px 0 10px 0' }}>
+                  图片预览
+                </Title>
+                <img
+                  src={imageUrl}
+                  alt="预览"
+                  style={{ width: '100%', borderRadius: 8 }}
+                />
               </div>
             )}
 
             <Space style={{ width: '100%', marginTop: '20px' }}>
-              <Button 
-                type="primary" 
-                icon={<CameraOutlined />} 
+              <Button
+                type="primary"
+                icon={<CameraOutlined />}
                 onClick={handleRecognize}
                 loading={loading}
                 block
               >
                 开始识别
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   setImageUrl(null);
                   setRecognitionResult(null);
@@ -135,7 +146,9 @@ const ImageRecognition = () => {
             {loading ? (
               <div className="loading-container">
                 <Spin size="large" />
-                <Paragraph style={{ marginTop: '20px' }}>正在识别中...</Paragraph>
+                <Paragraph style={{ marginTop: '20px' }}>
+                  正在识别中...
+                </Paragraph>
               </div>
             ) : recognitionResult ? (
               <div className="result-content">
@@ -174,16 +187,26 @@ const ImageRecognition = () => {
                 <div className="species-features">
                   <Title level={5}>主要特征</Title>
                   <ul>
-                    {recognitionResult.features.map((feature: string, index: number) => (
-                      <li key={index}>{feature}</li>
-                    ))}
+                    {recognitionResult.features.map(
+                      (feature: string, index: number) => (
+                        <li key={index}>{feature}</li>
+                      )
+                    )}
                   </ul>
                 </div>
               </div>
             ) : (
               <div className="empty-result">
-                <InfoCircleOutlined style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
-                <Paragraph style={{ color: '#666' }}>上传图片后点击"开始识别"查看结果</Paragraph>
+                <InfoCircleOutlined
+                  style={{
+                    fontSize: '64px',
+                    color: '#ccc',
+                    marginBottom: '20px',
+                  }}
+                />
+                <Paragraph style={{ color: '#666' }}>
+                  上传图片后点击"开始识别"查看结果
+                </Paragraph>
               </div>
             )}
           </Card>

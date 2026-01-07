@@ -1,5 +1,14 @@
-import './Login.css'
-import { Form, Input, Row, Col, Card, Checkbox, Typography, Button } from 'antd';
+import './Login.css';
+import {
+  Form,
+  Input,
+  Row,
+  Col,
+  Card,
+  Checkbox,
+  Typography,
+  Button,
+} from 'antd';
 import { UserOutlined, LockOutlined, CiOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,9 +28,9 @@ const Login = () => {
       const loginParams: LoginParams = {
         username: values.username,
         password: values.password,
-      }
+      };
       // 调用登录API
-      await userApi.login(loginParams)
+      await userApi.login(loginParams);
 
       // 获取当前用户信息
       const userInfo = await userApi.getCurrentUser();
@@ -45,7 +54,9 @@ const Login = () => {
             <div className="login-header">
               <div className="logo">
                 <CiOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
-                <Title level={2} style={{ margin: 0, marginLeft: '10px' }}>AquaMind</Title>
+                <Title level={2} style={{ margin: 0, marginLeft: '10px' }}>
+                  AquaMind
+                </Title>
               </div>
               <Paragraph style={{ margin: '10px 0 30px 0', color: '#666' }}>
                 水生生物图像识别与智能咨询平台
@@ -89,13 +100,21 @@ const Login = () => {
                     </Form.Item>
                   </Col>
                   <Col>
-                    <a href="#" style={{ float: 'right' }}>忘记密码？</a>
+                    <a href="#" style={{ float: 'right' }}>
+                      忘记密码？
+                    </a>
                   </Col>
                 </Row>
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" className="login-button" block loading={loading}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  className="login-button"
+                  block
+                  loading={loading}
+                >
                   登录
                 </Button>
               </Form.Item>
@@ -109,6 +128,6 @@ const Login = () => {
       </Row>
     </div>
   );
-}
+};
 
-export default Login
+export default Login;

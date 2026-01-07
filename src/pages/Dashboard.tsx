@@ -62,13 +62,21 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      <Title level={4} style={{ marginBottom: '20px' }}>快速功能</Title>
+      <Title level={4} style={{ marginBottom: '20px' }}>
+        快速功能
+      </Title>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={8}>
           <Card
             hoverable
             className="function-card"
-            cover={<div className="card-icon"><MessageOutlined style={{ fontSize: '48px', color: '#1890ff' }} /></div>}
+            cover={
+              <div className="card-icon">
+                <MessageOutlined
+                  style={{ fontSize: '48px', color: '#1890ff' }}
+                />
+              </div>
+            }
           >
             <Title level={4}>AI智能咨询</Title>
             <Paragraph>与AI助手对话，获取水生生物相关专业知识</Paragraph>
@@ -79,7 +87,13 @@ const Dashboard = () => {
           <Card
             hoverable
             className="function-card"
-            cover={<div className="card-icon"><UploadOutlined style={{ fontSize: '48px', color: '#52c41a' }} /></div>}
+            cover={
+              <div className="card-icon">
+                <UploadOutlined
+                  style={{ fontSize: '48px', color: '#52c41a' }}
+                />
+              </div>
+            }
           >
             <Title level={4}>图像识别</Title>
             <Paragraph>上传水生生物图像，AI快速识别物种信息</Paragraph>
@@ -90,7 +104,11 @@ const Dashboard = () => {
           <Card
             hoverable
             className="function-card"
-            cover={<div className="card-icon"><BookOutlined style={{ fontSize: '48px', color: '#fa8c16' }} /></div>}
+            cover={
+              <div className="card-icon">
+                <BookOutlined style={{ fontSize: '48px', color: '#fa8c16' }} />
+              </div>
+            }
           >
             <Title level={4}>知识库</Title>
             <Paragraph>浏览丰富的水生生物知识库资源</Paragraph>
@@ -99,8 +117,13 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      <div className="dashboard-footer" style={{ marginTop: '40px', textAlign: 'center', color: '#999' }}>
-        <Paragraph style={{ margin: 0 }}>© 2024 AquaMind 水生生物图像识别与智能咨询平台</Paragraph>
+      <div
+        className="dashboard-footer"
+        style={{ marginTop: '40px', textAlign: 'center', color: '#999' }}
+      >
+        <Paragraph style={{ margin: 0 }}>
+          © 2024 AquaMind 水生生物图像识别与智能咨询平台
+        </Paragraph>
       </div>
     </div>
   );
