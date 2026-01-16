@@ -9,6 +9,7 @@ import ImageRecognition from '../pages/ImageRecognition';
 import KnowledgeBase from '../pages/KnowledgeBase';
 import ConsoleLayout from '../layouts/ConsoleLayout';
 import AuthGuard from '../components/AuthGuard';
+import Profile from '../pages/Profile';
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -53,6 +54,16 @@ export const router = createBrowserRouter([
           <AuthGuard>
             <ConsoleLayout>
               <KnowledgeBase />
+            </ConsoleLayout>
+          </AuthGuard>
+        ),
+      },
+      { 
+        path: '/dashboard/profile', // 添加个人中心路由
+        element: (
+          <AuthGuard>
+            <ConsoleLayout>
+              <Profile />
             </ConsoleLayout>
           </AuthGuard>
         ),

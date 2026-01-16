@@ -40,6 +40,12 @@ export interface ApiResponse<T> {
   data: T;
   meta: T;
 }
+// 更新用户信息
+export interface UpdateUserParams {
+  real_name?: string;
+  phone?: string;
+  email?: string;
+}
 
 // 用户API服务
 const userApi = {
@@ -63,6 +69,13 @@ const userApi = {
   // 获取当前用户信息
   getCurrentUser: (): Promise<ApiResponse<UserInfo>> => {
     return axiosInstance.get('/user/me');
+  },
+
+  // 更新用户信息
+  updateUserInfo: (
+    params: UpdateUserParams
+  ): Promise<ApiResponse<UserInfo>> => {
+    return axiosInstance.put('/user/update', params);
   },
 };
 

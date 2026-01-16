@@ -52,6 +52,12 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       label: '知识库',
       path: '/dashboard/knowledge-base',
     },
+    {
+      key: '/dashboard/profile',
+      icon: <UserOutlined />,
+      label: '个人中心',
+      path: '/dashboard/profile',
+    },
   ];
 
   const { logout: logoutStore } = useUserStore();
