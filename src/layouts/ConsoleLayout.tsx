@@ -31,7 +31,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
     {
       key: '/dashboard',
       icon: <HomeOutlined />,
-      label: '控制台首页',
+      label: '首页',
       path: '/dashboard',
     },
     {

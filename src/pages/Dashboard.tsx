@@ -3,7 +3,7 @@ import {
   MessageOutlined,
   UploadOutlined,
   BookOutlined,
-  CiOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import './Dashboard.css';
 
@@ -55,7 +55,7 @@ const Dashboard = () => {
             <Statistic
               title="识别物种数"
               value={156}
-              prefix={<CiOutlined />}
+              prefix={<BarChartOutlined />}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>

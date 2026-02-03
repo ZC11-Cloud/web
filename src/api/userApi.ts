@@ -30,6 +30,7 @@ export interface UserInfo {
   email?: string;
   role: number;
   status: number;
+  avatar?: string;
 }
 
 // 通用响应接口
@@ -76,6 +77,24 @@ const userApi = {
     params: UpdateUserParams
   ): Promise<ApiResponse<UserInfo>> => {
     return axiosInstance.put('/user/update', params);
+  },
+
+  // 上传用户头像
+  uploadAvatar: (avatarFile: File): Promise<ApiResponse<string>> => {
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
+    return axiosInstance.post('/user/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // 获取用户头像
+  getAvatar: (userId: number): Promise<Blob> => {
+    return axiosInstance.get(`/user/avatar/${userId}`, {
+      responseType: 'blob',
+    });
   },
 };
 
