@@ -1,4 +1,5 @@
 import './index.css';
+import { useEffect } from 'react';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -8,7 +9,8 @@ import {
 import { Conversations } from '@ant-design/x';
 import type { ConversationsProps } from '@ant-design/x';
 import type { GetProp } from 'antd';
-
+import { message } from 'antd';
+import { useConversationStore } from '../../store/useConversationStore';
 const items: GetProp<ConversationsProps, 'items'> = Array.from({
   length: 4,
 }).map((_, index) => ({
@@ -18,6 +20,34 @@ const items: GetProp<ConversationsProps, 'items'> = Array.from({
 }));
 
 const Conversation = () => {
+  const {
+    conversations,
+    loading,
+    error,
+    currentConversationId,
+    fetchConversations,
+    setCurrentConversation,
+    clearError,
+  } = useConversationStore();
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
+  const items: ConversationsProps['items'] = conversations.map(
+    (conv) => ({
+      key: conv.id.toString(),
+      label: conv.title,
+    })
+  );
+
   const menuConfig: ConversationsProps['menu'] = {
     items: [
       {
@@ -51,7 +81,6 @@ const Conversation = () => {
       itemInfo.domEvent.stopPropagation();
     },
   };
-
   const newChatClick = () => {
     console.log('Click new chat');
   };

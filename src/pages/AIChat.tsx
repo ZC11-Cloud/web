@@ -11,7 +11,7 @@ import {
   Card,
   Flex,
 } from 'antd';
-import { Actions, Bubble } from '@ant-design/x';
+import { Actions, Bubble, Sender } from '@ant-design/x';
 import {
   MessageOutlined,
   UserOutlined,
@@ -42,38 +42,6 @@ const AIChat = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
-
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
-
-    const newUserMessage: Message = {
-      id: messages.length + 1,
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newUserMessage]);
-    setInputValue('');
-
-    // 模拟AI回复
-    setTimeout(() => {
-      const newAIMessage: Message = {
-        id: messages.length + 2,
-        content:
-          '这是一个模拟的AI回复。水生生物图像识别与智能咨询平台正在为您服务！',
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      setMessages([...messages, newUserMessage, newAIMessage]);
-    }, 1000);
-  };
-
-  const handleUpload = () => {
-    message.success('图片上传成功！');
-    // 后端交互暂不实现
-    return false; // 阻止自动上传
-  };
 
   const actionItems = [
     {
@@ -169,25 +137,9 @@ const AIChat = () => {
             </Flex>
           </div>
           <div className="chat-input">
-            <Space style={{ width: '100%' }}>
-              <Upload beforeUpload={handleUpload} showUploadList={false}>
-                <Button icon={<UploadOutlined />}>上传图片</Button>
-              </Upload>
-              <Input
-                placeholder="输入您的问题..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onPressEnter={handleSend}
-                style={{ flex: 1 }}
-              />
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSend}
-              >
-                发送
-              </Button>
-            </Space>
+            <Flex vertical gap={"middle"}>
+              <Sender></Sender>
+            </Flex>
           </div>
         </div>
       </div>
