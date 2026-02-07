@@ -11,18 +11,11 @@ import type { ConversationsProps } from '@ant-design/x';
 import type { GetProp } from 'antd';
 import { message } from 'antd';
 import { useConversationStore } from '../../store/useConversationStore';
-const items: GetProp<ConversationsProps, 'items'> = Array.from({
-  length: 4,
-}).map((_, index) => ({
-  key: `item${index + 1}`,
-  label: `对话 ${index + 1}`,
-  disabled: index === 3,
-}));
+import qaApi from '../../api/qaApi';
 
 const Conversation = () => {
   const {
     conversations,
-    loading,
     error,
     currentConversationId,
     fetchConversations,
@@ -41,7 +34,7 @@ const Conversation = () => {
     }
   }, [error, clearError]);
 
-  const items: ConversationsProps['items'] = conversations.map(
+  const items: GetProp<ConversationsProps, 'items'> = conversations.map(
     (conv) => ({
       key: conv.id.toString(),
       label: conv.title,
@@ -81,9 +74,26 @@ const Conversation = () => {
       itemInfo.domEvent.stopPropagation();
     },
   };
-  const newChatClick = () => {
-    console.log('Click new chat');
+  
+  // 创建新对话
+  const newChatClick = async () => {
+    try {
+      const newConversation = await qaApi.createConversation({
+        title: `新对话 ${new Date().toLocaleString()}`,
+      });
+      
+      message.success('创建新对话成功');
+      
+      // 刷新会话列表
+      fetchConversations();
+      
+      // 设置当前会话为新创建的会话
+      setCurrentConversation(newConversation.id);
+    } catch (error) {
+      message.error('创建新对话失败');
+    }
   };
+
   return (
     <div className="conversation-container">
       <Conversations
@@ -91,9 +101,10 @@ const Conversation = () => {
           label: '新建对话',
           onClick: newChatClick,
         }}
-        defaultActiveKey="item1"
+        activeKey={currentConversationId?.toString()}
         menu={menuConfig}
         items={items}
+        onActiveChange={(value: string) => setCurrentConversation(parseInt(value, 10))}
       />
     </div>
   );
