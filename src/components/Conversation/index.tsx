@@ -12,6 +12,7 @@ import type { GetProp } from 'antd';
 import { message } from 'antd';
 import { useConversationStore } from '../../store/useConversationStore';
 import qaApi from '../../api/qaApi';
+import { useXConversations } from '@ant-design/x-sdk';
 
 const Conversation = () => {
   const {
@@ -21,6 +22,7 @@ const Conversation = () => {
     fetchConversations,
     setCurrentConversation,
     clearError,
+    deleteConversation,
   } = useConversationStore();
 
   useEffect(() => {
@@ -34,14 +36,18 @@ const Conversation = () => {
     }
   }, [error, clearError]);
 
-  const items: GetProp<ConversationsProps, 'items'> = conversations.map(
+  const sortedConversations = [...conversations].sort((a, b) => {
+    return new Date(b.create_time).getTime() - new Date(a.create_time).getTime();
+  });
+
+  const items: GetProp<ConversationsProps, 'items'> = sortedConversations.map(
     (conv) => ({
       key: conv.id.toString(),
       label: conv.title,
     })
   );
 
-  const menuConfig: ConversationsProps['menu'] = {
+  const menuConfig: ConversationsProps['menu'] = (conversation) => ({
     items: [
       {
         label: '重命名',
@@ -67,13 +73,22 @@ const Conversation = () => {
         key: 'deleteChat',
         icon: <DeleteOutlined />,
         danger: true,
+        onClick: async () => {
+          try {
+            await deleteConversation(parseInt(conversation.key, 10));
+            message.success('删除会话成功');
+          } catch (error) {
+            message.error('删除会话失败');
+          }
+        },
       },
     ],
     onClick: (itemInfo) => {
+      console.log(itemInfo);
       console.log(`Click ${itemInfo.key}`);
       itemInfo.domEvent.stopPropagation();
     },
-  };
+  });
   
   // 创建新对话
   const newChatClick = async () => {

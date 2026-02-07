@@ -68,7 +68,10 @@ const qaApi = {
   ): Promise<Conversation> => {
     return axiosInstance.post('/qa/conversations', data);
   },
-
+  // 删除会话
+  deleteConversation: (conversation_id: number): Promise<void> => {
+    return axiosInstance.delete(`/qa/conversations/${conversation_id}`);
+  },
   // 获取消息
   getMessages: (params: MessagesParams): Promise<MessagesResponse> => {
     return axiosInstance.get(

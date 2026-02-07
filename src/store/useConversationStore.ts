@@ -22,6 +22,7 @@ interface ConversationStore {
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
   setCurrentConversation: (id: number | null) => void;
   clearError: () => void;
+  deleteConversation: (conversationId: number) => Promise<void>;
 
   // 消息相关操作
   fetchMessages: (
@@ -73,6 +74,21 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  deleteConversation: async (conversationId) => {
+    try {
+      await qaApi.deleteConversation(conversationId);
+      set((state) => ({
+        conversations: state.conversations.filter(
+          (conv) => conv.id !== conversationId
+        ),
+      }));
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : '删除会话失败',
+      });
+    }
   },
 
   // 获取消息列表
