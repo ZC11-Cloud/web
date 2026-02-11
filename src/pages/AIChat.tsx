@@ -91,11 +91,6 @@ const AIChat = () => {
         <Conversation />
         <div className="chat-main">
           <div className="chat-messages">
-            {messagesLoading ? (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <Spin size="large" />
-              </div>
-            ) : (
               <Bubble.List
                 style={{ 
                   height: 'calc(100vh - 250px)', 
@@ -115,10 +110,10 @@ const AIChat = () => {
                       onClick={() => console.log(content)}
                     />
                   ),
+                  loading: msg.sender === 'ai' && messagesLoading,
                 }))}
                 autoScroll={true}
               />
-            )}
           </div>
           <div className="chat-input">
             <Flex vertical gap={'middle'}>
