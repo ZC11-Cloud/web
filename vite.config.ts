@@ -8,5 +8,12 @@ export default defineConfig({
     port: 8001,
     host: '0.0.0.0',
     cors: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    }
   },
 })
