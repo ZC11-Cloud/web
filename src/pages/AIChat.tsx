@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react';
-import {
-  Typography,
-  Avatar,
-  message,
-  Flex,
-  Spin,
-} from 'antd';
+import { Typography, Avatar, message, Flex, Skeleton, theme } from 'antd';
 import { Actions, Bubble, Sender } from '@ant-design/x';
-import {
-  UserOutlined,
-  CopyOutlined,
-  RedoOutlined,
-} from '@ant-design/icons';
+import { UserOutlined, CopyOutlined, RedoOutlined } from '@ant-design/icons';
+import { XMarkdown } from '@ant-design/x-markdown';
+import '@ant-design/x-markdown/themes/light.css';
+import '@ant-design/x-markdown/themes/dark.css';
 import './AIChat.css';
 import Conversation from '../components/Conversation';
 import { useConversationStore } from '../store/useConversationStore';
 import type { Message as ApiMessage } from '../api/qaApi';
 
 const { Title, Paragraph } = Typography;
+
+// 流式 Markdown 中未完整解析的链接/图片占位
+const markdownLoadingComponents = {
+  'loading-link': () => (
+    <Skeleton.Button
+      active
+      size="small"
+      style={{ margin: '4px 0', width: 16, height: 16 }}
+    />
+  ),
+  'loading-image': () => (
+    <Skeleton.Image active style={{ width: 60, height: 60 }} />
+  ),
+};
 
 const AIChat = () => {
   // 使用状态管理
@@ -33,6 +40,12 @@ const AIChat = () => {
   } = useConversationStore();
 
   const [inputValue, setInputValue] = useState('');
+  const { theme: antdTheme } = theme.useToken();
+  const markdownThemeClass =
+    (antdTheme as { id?: number })?.id === 0
+      ? 'x-markdown-light'
+      : 'x-markdown-dark';
+
   // 错误提示
   useEffect(() => {
     if (messagesError) {
@@ -101,32 +114,55 @@ const AIChat = () => {
         <Conversation />
         <div className="chat-main">
           <div className="chat-messages">
-              <Bubble.List
-                style={{ 
-                  height: 'calc(100vh - 250px)', 
-                  padding: '16px'
-                }}
-                items={formattedMessages.map((msg) => ({
-                  key: String(msg.id),
-                  role: msg.sender,
-                  content: msg.content,
-                  placement: msg.sender === 'user' ? 'end' : 'start',
-                  footerPlacement: msg.sender === 'user' ? 'outer-end' : 'outer-start',
-                  header: msg.sender === 'user' ? 'User' : 'AquaMind',
-                  avatar: <Avatar icon={<UserOutlined />} />,
-                  footer: (content) => (
-                    <Actions
-                      items={actionItems}
-                      onClick={() => console.log(content)}
-                    />
-                  ),
-                  loading:
-                    msg.sender === 'ai' &&
-                    messagesLoading &&
-                    msg.id !== -1,
-                }))}
-                autoScroll={true}
-              />
+            <Bubble.List
+              style={{
+                height: 'calc(100vh - 250px)',
+                padding: '16px',
+              }}
+              items={formattedMessages.map((msg) => ({
+                key: String(msg.id),
+                role: msg.sender,
+                content: msg.content,
+                placement: msg.sender === 'user' ? 'end' : 'start',
+                footerPlacement:
+                  msg.sender === 'user' ? 'outer-end' : 'outer-start',
+                header: msg.sender === 'user' ? 'User' : 'AquaMind',
+                avatar: <Avatar icon={<UserOutlined />} />,
+                footer: (content) => (
+                  <Actions
+                    items={actionItems}
+                    onClick={() => console.log(content)}
+                  />
+                ),
+                loading:
+                  msg.sender === 'ai' && messagesLoading && msg.id !== -1,
+                contentRender: (content: string) => (
+                  <XMarkdown
+                    className={markdownThemeClass}
+                    content={content}
+                    paragraphTag="div"
+                    streaming={
+                      msg.sender === 'ai' && msg.id === -1
+                        ? {
+                            hasNextChunk: isStreaming,
+                            enableAnimation: true,
+                            incompleteMarkdownComponentMap: {
+                              link: 'loading-link',
+                              image: 'loading-image',
+                            },
+                          }
+                        : undefined
+                    }
+                    components={
+                      msg.sender === 'ai' && msg.id === -1
+                        ? markdownLoadingComponents
+                        : undefined
+                    }
+                  />
+                ),
+              }))}
+              autoScroll={true}
+            />
           </div>
           <div className="chat-input">
             <Flex vertical gap={'middle'}>
@@ -136,15 +172,17 @@ const AIChat = () => {
                   if (!text.trim() || !currentConversationId) {
                     return;
                   }
-                  
+
                   // 清空输入框
                   setInputValue('');
-                  
+
                   // 发送消息
                   await sendMessage(currentConversationId, text);
                 }}
                 disabled={!currentConversationId}
-                placeholder={currentConversationId ? "输入消息..." : "请先选择一个会话"}
+                placeholder={
+                  currentConversationId ? '输入消息...' : '请先选择一个会话'
+                }
                 onChange={(value) => setInputValue(value)}
               />
             </Flex>

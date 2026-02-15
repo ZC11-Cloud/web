@@ -141,7 +141,6 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     try {
       await qaApi.sendMessageStream(conversationId, content, {
         onChunk: (chunk) => {
-          console.log('[stream] chunk', chunk.length, chunk);
           set((state) => ({ streamingContent: state.streamingContent + chunk }));
         },
         onDone: async () => {
