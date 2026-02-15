@@ -18,6 +18,10 @@ interface ConversationStore {
   messagesLoading: boolean;
   messagesError: string | null;
   messagesTotal: number;
+  /** 当前正在流式接收的 AI 回复内容 */
+  streamingContent: string;
+  /** 是否处于流式输出中 */
+  isStreaming: boolean;
   // Actions
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
   setCurrentConversation: (id: number | null) => void;
@@ -44,6 +48,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   messagesLoading: false,
   messagesError: null,
   messagesTotal: 0,
+  streamingContent: '',
+  isStreaming: false,
 
   fetchConversations: async (params = { skip: 0, limit: 20 }) => {
     set({ loading: true, error: null });
@@ -115,32 +121,46 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     }
   },
 
-  // 发送消息
+  // 发送消息（流式输出）
   sendMessage: async (conversationId, content) => {
-    // 创建临时用户消息，立即显示在UI上
     const tempUserMessage: Message = {
-      id: Date.now(), // 使用时间戳作为临时ID
+      id: Date.now(),
       conversation_id: conversationId,
       content,
       role: 'user',
       create_time: new Date().toISOString(),
     };
-    
-    // 立即将用户消息添加到列表中
+
     set((state) => ({
       messages: [...state.messages, tempUserMessage],
+      isStreaming: true,
+      streamingContent: '',
+      messagesError: null,
     }));
-    try {
-      await qaApi.sendMessage({
-        conversation_id: conversationId,
-        content,
-      });
 
-      // 重新获取消息列表，确保包含用户的提问和AI的回复
-      await get().fetchMessages(conversationId);
+    try {
+      await qaApi.sendMessageStream(conversationId, content, {
+        onChunk: (chunk) => {
+          console.log('[stream] chunk', chunk.length, chunk);
+          set((state) => ({ streamingContent: state.streamingContent + chunk }));
+        },
+        onDone: async () => {
+          set({ isStreaming: false, streamingContent: '' });
+          await get().fetchMessages(conversationId);
+        },
+        onError: (detail) => {
+          set({
+            isStreaming: false,
+            streamingContent: '',
+            messagesError: detail,
+          });
+        },
+      });
     } catch (error) {
       set((state) => ({
-        messages: state.messages.filter(msg => msg.id !== tempUserMessage.id),
+        messages: state.messages.filter((msg) => msg.id !== tempUserMessage.id),
+        isStreaming: false,
+        streamingContent: '',
         messagesError: error instanceof Error ? error.message : '发送消息失败',
       }));
     }

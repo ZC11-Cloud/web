@@ -28,6 +28,8 @@ const AIChat = () => {
     currentConversationId,
     sendMessage,
     clearMessagesError,
+    streamingContent,
+    isStreaming,
   } = useConversationStore();
 
   const [inputValue, setInputValue] = useState('');
@@ -39,9 +41,8 @@ const AIChat = () => {
     }
   }, [messagesError, clearMessagesError]);
 
-  // 将API消息格式转换为组件需要的格式
+  // 将API消息格式转换为组件需要的格式，流式输出时追加当前正在接收的 AI 气泡
   const formatMessages = () => {
-    // 如果没有选择会话，显示欢迎消息
     if (!currentConversationId) {
       return [
         {
@@ -54,13 +55,22 @@ const AIChat = () => {
       ];
     }
 
-    // 否则显示会话消息
-    return messages.map((msg: ApiMessage) => ({
+    const list = messages.map((msg: ApiMessage) => ({
       id: msg.id,
       content: msg.content,
       sender: msg.role === 'user' ? ('user' as const) : ('ai' as const),
       timestamp: new Date(msg.create_time),
     }));
+
+    if (isStreaming) {
+      list.push({
+        id: -1,
+        content: streamingContent || ' ',
+        sender: 'ai' as const,
+        timestamp: new Date(),
+      });
+    }
+    return list;
   };
 
   const formattedMessages = formatMessages();
@@ -97,7 +107,7 @@ const AIChat = () => {
                   padding: '16px'
                 }}
                 items={formattedMessages.map((msg) => ({
-                  key: msg.id,
+                  key: String(msg.id),
                   role: msg.sender,
                   content: msg.content,
                   placement: msg.sender === 'user' ? 'end' : 'start',
@@ -110,7 +120,10 @@ const AIChat = () => {
                       onClick={() => console.log(content)}
                     />
                   ),
-                  loading: msg.sender === 'ai' && messagesLoading,
+                  loading:
+                    msg.sender === 'ai' &&
+                    messagesLoading &&
+                    msg.id !== -1,
                 }))}
                 autoScroll={true}
               />
