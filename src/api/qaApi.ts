@@ -53,6 +53,8 @@ export interface SendMessageRequest {
   conversation_id: number;
   content: string;
   use_rag?: boolean;
+  use_image?: boolean;
+  image_base64?: string | null;
 }
 
 // 流式消息 SSE 事件类型
@@ -77,6 +79,8 @@ export type StreamEvent = StreamEventChunk | StreamEventDone | StreamEventError;
 // 流式发送消息的选项
 export interface SendMessageStreamOptions {
   use_rag?: boolean;
+  use_image?: boolean;
+  image_base64?: string | null;
   onChunk: (content: string) => void;
   onDone?: () => void;
   onError?: (detail: string) => void;
@@ -121,6 +125,8 @@ const qaApi = {
       {
         content: data.content,
         use_rag: data.use_rag,
+        use_image: data.use_image,
+        image_base64: data.image_base64 ?? undefined,
       }
     );
   },
@@ -134,7 +140,7 @@ const qaApi = {
     content: string,
     options: SendMessageStreamOptions
   ): Promise<void> => {
-    const { use_rag, onChunk, onDone, onError, signal } = options;
+    const { use_rag, use_image, image_base64, onChunk, onDone, onError, signal } = options;
     const baseURL = import.meta.env.VITE_API_BASE_URL ?? '';
     const url = `${baseURL.replace(/\/$/, '')}/qa/conversations/${conversationId}/messages/stream`;
     const token = localStorage.getItem('token');
@@ -145,7 +151,20 @@ const qaApi = {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ content, use_rag: use_rag ?? false }),
+      body: (() => {
+        const body = {
+          content,
+          use_rag: use_rag ?? false,
+          use_image: use_image ?? false,
+          image_base64: image_base64 ?? undefined,
+        };
+        console.log('[DEBUG] qaApi.sendMessageStream 请求体:', {
+          use_rag: body.use_rag,
+          use_image: body.use_image,
+          image_base64: body.image_base64 ? `${body.image_base64.length} 字符` : '未传',
+        });
+        return JSON.stringify(body);
+      })(),
       signal,
     });
 

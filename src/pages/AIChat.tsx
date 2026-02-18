@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Typography, Avatar, message, Flex, Skeleton, theme } from 'antd';
+import { Typography, Avatar, message, Flex, Skeleton, theme, Switch, Space, Upload } from 'antd';
 import { Actions, Bubble, Sender } from '@ant-design/x';
-import { UserOutlined, CopyOutlined, RedoOutlined } from '@ant-design/icons';
+import { UserOutlined, CopyOutlined, RedoOutlined, BookOutlined, PictureOutlined } from '@ant-design/icons';
 import { XMarkdown } from '@ant-design/x-markdown';
+import type { UploadProps } from 'antd';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
 import './AIChat.css';
@@ -40,7 +41,38 @@ const AIChat = () => {
   } = useConversationStore();
 
   const [inputValue, setInputValue] = useState('');
+  const [useRag, setUseRag] = useState(false);
+  const [useImage, setUseImage] = useState(false);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const { theme: antdTheme } = theme.useToken();
+
+  const uploadImageProps: UploadProps = {
+    name: 'file',
+    showUploadList: false,
+    maxCount: 1,
+    accept: 'image/*',
+    beforeUpload: (file) => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('请上传图片文件');
+        return false;
+      }
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error('图片大小不能超过 5MB');
+        return false;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        let base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+        if (base64) base64 = base64.replace(/\s/g, ''); // 去掉换行和空格，避免后端解码失败
+        setImageBase64(base64 ?? null);
+      };
+      reader.readAsDataURL(file);
+      return false;
+    },
+  };
   const markdownThemeClass =
     (antdTheme as { id?: number })?.id === 0
       ? 'x-markdown-light'
@@ -166,18 +198,44 @@ const AIChat = () => {
           </div>
           <div className="chat-input">
             <Flex vertical gap={'middle'}>
+              <Space wrap>
+                <Space>
+                  <BookOutlined />
+                  <span>使用知识库</span>
+                  <Switch size="small" checked={useRag} onChange={setUseRag} />
+                </Space>
+                <Space>
+                  <PictureOutlined />
+                  <span>使用图像识别</span>
+                  <Switch size="small" checked={useImage} onChange={(v) => { setUseImage(v); if (!v) setImageBase64(null); }} />
+                </Space>
+                {useImage && (
+                  <Upload {...uploadImageProps}>
+                    <span style={{ color: '#1890ff', cursor: 'pointer' }}>
+                      {imageBase64 ? '已选图，点击更换' : '上传图片'}
+                    </span>
+                  </Upload>
+                )}
+              </Space>
               <Sender
                 value={inputValue}
                 onSubmit={async (text) => {
                   if (!text.trim() || !currentConversationId) {
                     return;
                   }
-
-                  // 清空输入框
+                  const opts = {
+                    use_rag: useRag,
+                    use_image: useImage,
+                    image_base64: imageBase64 ?? undefined,
+                  };
+                  console.log('[DEBUG] AIChat 发送参数:', {
+                    use_rag: opts.use_rag,
+                    use_image: opts.use_image,
+                    image_base64: opts.image_base64 ? `${opts.image_base64.length} 字符` : '未传',
+                  });
                   setInputValue('');
-
-                  // 发送消息
-                  await sendMessage(currentConversationId, text);
+                  await sendMessage(currentConversationId, text, opts);
+                  setImageBase64(null);
                 }}
                 disabled={!currentConversationId}
                 placeholder={
