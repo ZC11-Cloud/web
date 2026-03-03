@@ -21,9 +21,10 @@ import './ImageRecognition.css';
 const { Title, Paragraph } = Typography;
 const { Dragger } = Upload;
 
-/** 识别结果：优先展示中文名与描述 */
+/** 识别结果：优先展示中文名、置信度与描述 */
 interface RecognitionResult {
   speciesName: string;
+  confidence?: number;
   description?: string | null;
 }
 
@@ -85,6 +86,7 @@ const ImageRecognition = () => {
           best.species_name_zh?.trim() || best.class_name;
         setRecognitionResult({
           speciesName: displayName,
+          confidence: best.confidence,
           description: best.description?.trim() || null,
         });
         message.success('识别完成！');
@@ -171,6 +173,11 @@ const ImageRecognition = () => {
               <div className="result-content">
                 <div className="species-info">
                   <div className="species-name">{recognitionResult.speciesName}</div>
+                  {recognitionResult.confidence != null && (
+                    <div className="species-confidence">
+                      置信度：{(recognitionResult.confidence * 100).toFixed(1)}%
+                    </div>
+                  )}
                   {recognitionResult.description && (
                     <p className="species-description">
                       {recognitionResult.description}
