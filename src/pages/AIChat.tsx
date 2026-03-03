@@ -1,7 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Typography, Avatar, message, Flex, Skeleton, theme, Switch, Space, Upload } from 'antd';
+import {
+  Typography,
+  Avatar,
+  message,
+  Flex,
+  Skeleton,
+  theme,
+  Upload,
+  Button,
+} from 'antd';
 import { Actions, Bubble, Sender } from '@ant-design/x';
-import { UserOutlined, CopyOutlined, RedoOutlined, BookOutlined, PictureOutlined } from '@ant-design/icons';
+
+const SenderSwitch = Sender.Switch;
+import {
+  UserOutlined,
+  CopyOutlined,
+  RedoOutlined,
+  BookOutlined,
+  PictureOutlined,
+  PaperClipOutlined,
+  OpenAIOutlined,
+} from '@ant-design/icons';
 import { XMarkdown } from '@ant-design/x-markdown';
 import type { UploadProps } from 'antd';
 import '@ant-design/x-markdown/themes/light.css';
@@ -43,6 +62,7 @@ const AIChat = () => {
   const [inputValue, setInputValue] = useState('');
   const [useRag, setUseRag] = useState(false);
   const [useImage, setUseImage] = useState(false);
+  const [useDeepSearch, setUseDeepSearch] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const { theme: antdTheme } = theme.useToken();
 
@@ -133,6 +153,13 @@ const AIChat = () => {
     },
   ];
 
+  const SwitchTextStyle = {
+    display: 'inline-flex',
+    width: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  };
+
   return (
     <div className="ai-chat">
       <div className="page-header">
@@ -197,27 +224,7 @@ const AIChat = () => {
             />
           </div>
           <div className="chat-input">
-            <Flex vertical gap={'middle'}>
-              <Space wrap>
-                <Space>
-                  <BookOutlined />
-                  <span>使用知识库</span>
-                  <Switch size="small" checked={useRag} onChange={setUseRag} />
-                </Space>
-                <Space>
-                  <PictureOutlined />
-                  <span>使用图像识别</span>
-                  <Switch size="small" checked={useImage} onChange={(v) => { setUseImage(v); if (!v) setImageBase64(null); }} />
-                </Space>
-                {useImage && (
-                  <Upload {...uploadImageProps}>
-                    <span style={{ color: '#1890ff', cursor: 'pointer' }}>
-                      {imageBase64 ? '已选图，点击更换' : '上传图片'}
-                    </span>
-                  </Upload>
-                )}
-              </Space>
-              <Sender
+            <Sender
                 value={inputValue}
                 onSubmit={async (text) => {
                   if (!text.trim() || !currentConversationId) {
@@ -231,7 +238,9 @@ const AIChat = () => {
                   console.log('[DEBUG] AIChat 发送参数:', {
                     use_rag: opts.use_rag,
                     use_image: opts.use_image,
-                    image_base64: opts.image_base64 ? `${opts.image_base64.length} 字符` : '未传',
+                    image_base64: opts.image_base64
+                      ? `${opts.image_base64.length} 字符`
+                      : '未传',
                   });
                   setInputValue('');
                   await sendMessage(currentConversationId, text, opts);
@@ -242,8 +251,72 @@ const AIChat = () => {
                   currentConversationId ? '输入消息...' : '请先选择一个会话'
                 }
                 onChange={(value) => setInputValue(value)}
+                footer={() => {
+                  return (
+                    <Flex justify="space-between" align="center">
+                      <Flex gap="small" align="center">
+                        <Button type="text" icon={<PaperClipOutlined />} />
+                        <SenderSwitch
+                          value={useDeepSearch}
+                          icon={<OpenAIOutlined />}
+                          checkedChildren={
+                            <>
+                              深度搜索：<span style={SwitchTextStyle}>开启</span>
+                            </>
+                          }
+                          unCheckedChildren={
+                            <>
+                              深度搜索：<span style={SwitchTextStyle}>关闭</span>
+                            </>
+                          }
+                          onChange={(checked: boolean) => setUseDeepSearch(checked)}
+                        />
+                        <SenderSwitch
+                          value={useRag}
+                          icon={<BookOutlined />}
+                          checkedChildren={
+                            <>
+                              知识库：<span style={SwitchTextStyle}>开启</span>
+                            </>
+                          }
+                          unCheckedChildren={
+                            <>
+                              知识库：<span style={SwitchTextStyle}>关闭</span>
+                            </>
+                          }
+                          onChange={(checked: boolean) => setUseRag(checked)}
+                        />
+                        <SenderSwitch
+                          value={useImage}
+                          icon={<PictureOutlined />}
+                          checkedChildren={
+                            <>
+                              图像识别：<span style={SwitchTextStyle}>开启</span>
+                            </>
+                          }
+                          unCheckedChildren={
+                            <>
+                              图像识别：<span style={SwitchTextStyle}>关闭</span>
+                            </>
+                          }
+                          onChange={(checked: boolean) => {
+                            setUseImage(checked);
+                            if (!checked) setImageBase64(null);
+                          }}
+                        />
+                        {useImage && (
+                          <Upload {...uploadImageProps}>
+                            <span style={{ color: '#1890ff', cursor: 'pointer' }}>
+                              {imageBase64 ? '已选图，点击更换' : '上传图片'}
+                            </span>
+                          </Upload>
+                        )}
+                      </Flex>
+                    </Flex>
+                  );
+                }}
+                allowSpeech={true}
               />
-            </Flex>
           </div>
         </div>
       </div>

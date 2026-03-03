@@ -8,29 +8,35 @@ import {
   message,
   Spin,
   Typography,
-  Tag,
   Space,
-  Divider,
 } from 'antd';
 import {
   UploadOutlined,
   CameraOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
+import { detectImage } from '../api/imageApi';
 import './ImageRecognition.css';
 
 const { Title, Paragraph } = Typography;
 const { Dragger } = Upload;
 
+/** 当前仅展示物种名称 */
+interface RecognitionResult {
+  speciesName: string;
+}
+
 const ImageRecognition = () => {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [recognitionResult, setRecognitionResult] = useState<any>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [recognitionResult, setRecognitionResult] =
+    useState<RecognitionResult | null>(null);
 
   const uploadProps = {
     name: 'file',
     multiple: false,
-    beforeUpload: (file: any) => {
+    beforeUpload: (file: File) => {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
         message.error('请上传图片文件！');
@@ -42,7 +48,7 @@ const ImageRecognition = () => {
         return false;
       }
 
-      // 显示图片预览
+      setUploadedFile(file);
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
@@ -54,31 +60,35 @@ const ImageRecognition = () => {
   };
 
   const handleRecognize = () => {
-    if (!imageUrl) {
+    if (!uploadedFile) {
       message.error('请先上传图片！');
       return;
     }
 
     setLoading(true);
+    setRecognitionResult(null);
 
-    // 模拟识别过程
-    setTimeout(() => {
-      // 模拟识别结果
-      setRecognitionResult({
-        speciesName: '中华鲟',
-        scientificName: 'Acipenser sinensis',
-        confidence: 0.98,
-        category: '鱼类',
-        description:
-          '中华鲟是中国特有的大型溯河洄游性鱼类，属于国家一级保护动物，主要分布在长江流域。',
-        habitat: '长江、黄河、珠江等大型河流',
-        status: '极危(CR)',
-        features: ['身体呈纺锤形', '吻部尖长', '体表无鳞', '有5行骨板'],
+    detectImage(uploadedFile)
+      .then((res) => {
+        const detections = res.data?.detections ?? [];
+        if (detections.length === 0) {
+          setRecognitionResult({ speciesName: '未识别到物种' });
+          message.info('未检测到目标物种');
+          return;
+        }
+        // 取置信度最高的一条作为主结果
+        const best = detections.reduce((a, b) =>
+          a.confidence >= b.confidence ? a : b
+        );
+        setRecognitionResult({ speciesName: best.class_name });
+        message.success('识别完成！');
+      })
+      .catch(() => {
+        message.error('识别失败，请重试');
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      setLoading(false);
-      message.success('识别完成！');
-    }, 2000);
   };
 
   return (
@@ -130,6 +140,7 @@ const ImageRecognition = () => {
               </Button>
               <Button
                 onClick={() => {
+                  setUploadedFile(null);
                   setImageUrl(null);
                   setRecognitionResult(null);
                 }}
@@ -153,46 +164,9 @@ const ImageRecognition = () => {
             ) : recognitionResult ? (
               <div className="result-content">
                 <div className="species-info">
-                  <Title level={3} style={{ marginBottom: '10px' }}>
-                    {recognitionResult.speciesName}
-                    <Tag color="green" style={{ marginLeft: '10px' }}>
-                      {recognitionResult.confidence * 100}%
-                    </Tag>
+                  <Title level={3} style={{ marginBottom: 0 }}>
+                    物种名称：{recognitionResult.speciesName}
                   </Title>
-                  <Paragraph style={{ margin: '5px 0', color: '#666' }}>
-                    学名: {recognitionResult.scientificName}
-                  </Paragraph>
-                  <Paragraph style={{ margin: '5px 0', color: '#666' }}>
-                    分类: {recognitionResult.category}
-                  </Paragraph>
-                  <Paragraph style={{ margin: '5px 0', color: '#666' }}>
-                    保护状态: {recognitionResult.status}
-                  </Paragraph>
-                </div>
-
-                <Divider />
-
-                <div className="species-description">
-                  <Title level={5}>
-                    <InfoCircleOutlined /> 物种描述
-                  </Title>
-                  <Paragraph>{recognitionResult.description}</Paragraph>
-                </div>
-
-                <div className="species-details">
-                  <Title level={5}>栖息地</Title>
-                  <Paragraph>{recognitionResult.habitat}</Paragraph>
-                </div>
-
-                <div className="species-features">
-                  <Title level={5}>主要特征</Title>
-                  <ul>
-                    {recognitionResult.features.map(
-                      (feature: string, index: number) => (
-                        <li key={index}>{feature}</li>
-                      )
-                    )}
-                  </ul>
                 </div>
               </div>
             ) : (
