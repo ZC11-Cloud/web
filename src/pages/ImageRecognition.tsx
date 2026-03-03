@@ -21,9 +21,10 @@ import './ImageRecognition.css';
 const { Title, Paragraph } = Typography;
 const { Dragger } = Upload;
 
-/** 当前仅展示物种名称 */
+/** 识别结果：优先展示中文名与描述 */
 interface RecognitionResult {
   speciesName: string;
+  description?: string | null;
 }
 
 const ImageRecognition = () => {
@@ -80,7 +81,12 @@ const ImageRecognition = () => {
         const best = detections.reduce((a, b) =>
           a.confidence >= b.confidence ? a : b
         );
-        setRecognitionResult({ speciesName: best.class_name });
+        const displayName =
+          best.species_name_zh?.trim() || best.class_name;
+        setRecognitionResult({
+          speciesName: displayName,
+          description: best.description?.trim() || null,
+        });
         message.success('识别完成！');
       })
       .catch(() => {
@@ -164,9 +170,12 @@ const ImageRecognition = () => {
             ) : recognitionResult ? (
               <div className="result-content">
                 <div className="species-info">
-                  <Title level={3} style={{ marginBottom: 0 }}>
-                    物种名称：{recognitionResult.speciesName}
-                  </Title>
+                  <div className="species-name">{recognitionResult.speciesName}</div>
+                  {recognitionResult.description && (
+                    <p className="species-description">
+                      {recognitionResult.description}
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (

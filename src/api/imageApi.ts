@@ -6,6 +6,10 @@ export interface DetectionItem {
   class_id: number;
   confidence: number;
   bbox: number[];
+  /** 中文物种名称（LLM 增强） */
+  species_name_zh?: string | null;
+  /** 简短描述（LLM 增强） */
+  description?: string | null;
 }
 
 /** 检测接口响应 data 结构 */
