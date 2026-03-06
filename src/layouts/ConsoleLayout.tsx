@@ -65,7 +65,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
           <Menu
             theme="dark"
             mode="inline"
-            selectedKeys={[location.pathname]}
+            selectedKeys={[location.pathname === '/' ? '/ai-chat' : location.pathname]}
             className="console-menu"
             items={menuItems.map((item) => ({
               key: item.path,
@@ -104,7 +104,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* 右侧：整块对话/内容区；对话页全高无外边距，其余页面保留卡片区 */}
       <Content className="console-content">
-        {location.pathname === '/ai-chat' ? (
+        {location.pathname === '/' || location.pathname === '/ai-chat' ? (
           children
         ) : (
           <div className="content-wrapper">{children}</div>
