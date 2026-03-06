@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { Layout, Menu, Typography, Avatar, Space, Button, message } from 'antd';
+import { Layout, Menu, Typography, Avatar, Button, message } from 'antd';
 import {
   MessageOutlined,
   UploadOutlined,
   BookOutlined,
-  HomeOutlined,
   UserOutlined,
   LogoutOutlined,
-  CiOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './ConsoleLayout.css';
 import { useUserStore } from '../store/useUserStore';
-const { Header, Sider, Content } = Layout;
+import Conversation from '../components/Conversation';
+
+const { Sider, Content } = Layout;
 const { Title } = Typography;
 
 interface MenuItem {
@@ -28,7 +28,6 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [
-    { key: '/', icon: <HomeOutlined />, label: '首页', path: '/' },
     { key: '/ai-chat', icon: <MessageOutlined />, label: 'AI智能咨询', path: '/ai-chat' },
     { key: '/image-recognition', icon: <UploadOutlined />, label: '图像识别', path: '/image-recognition' },
     { key: '/knowledge-base', icon: <BookOutlined />, label: '知识库', path: '/knowledge-base' },
@@ -52,57 +51,65 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         className="console-sider"
         breakpoint="lg"
         collapsedWidth="0"
+        width={260}
       >
-        <div className="logo">
-          <CiOutlined
-            style={{ fontSize: '24px', color: '#1890ff', marginRight: '10px' }}
-          />
-          {!collapsed && (
-            <Title level={4} style={{ margin: 0, color: '#fff' }}>
-              AquaMind
-            </Title>
-          )}
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={menuItems.map((item) => ({
-            key: item.path,
-            icon: item.icon,
-            label: <Link to={item.path}>{item.label}</Link>,
-          }))}
-        />
-      </Sider>
-
-      <Layout className="console-main">
-        <Header className="console-header">
-          <div className="header-left">
+        {/* 上：Logo + 菜单 */}
+        <div className="sider-top">
+          <div className="logo">
             {!collapsed && (
-              <Title level={4} style={{ margin: 0, color: '#fff' }}>
-                控制台
+              <Title level={5} style={{ margin: 0, color: '#fff' }}>
+                AquaMind
               </Title>
             )}
           </div>
-          <div className="header-right">
-            <Space>
-              <Avatar icon={<UserOutlined />} />
-              <span style={{ color: '#fff' }}>欢迎，用户</span>
-              <Button
-                icon={<LogoutOutlined />}
-                onClick={handleLogout}
-                style={{ borderColor: '#fff' }}
-              >
-                退出登录
-              </Button>
-            </Space>
-          </div>
-        </Header>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            className="console-menu"
+            items={menuItems.map((item) => ({
+              key: item.path,
+              icon: item.icon,
+              label: <Link to={item.path}>{item.label}</Link>,
+            }))}
+          />
+        </div>
 
-        <Content className="console-content">
+        {/* 下：历史聊天记录 */}
+        <div className="sider-bottom">
+          {!collapsed && (
+            <>
+              <div className="history-label">历史对话</div>
+              <div className="sider-conversation">
+                <Conversation />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 侧栏底部：用户与退出 */}
+        {!collapsed && (
+          <div className="sider-footer">
+            <Avatar size="small" icon={<UserOutlined />} />
+            <span className="sider-user-text">用户</span>
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              className="sider-logout"
+            />
+          </div>
+        )}
+      </Sider>
+
+      {/* 右侧：整块对话/内容区；对话页全高无外边距，其余页面保留卡片区 */}
+      <Content className="console-content">
+        {location.pathname === '/ai-chat' ? (
+          children
+        ) : (
           <div className="content-wrapper">{children}</div>
-        </Content>
-      </Layout>
+        )}
+      </Content>
     </Layout>
   );
 };

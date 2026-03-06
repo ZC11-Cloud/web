@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Typography,
   Avatar,
   message,
   Flex,
@@ -26,11 +25,9 @@ import type { UploadProps } from 'antd';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
 import './AIChat.css';
-import Conversation from '../components/Conversation';
 import { useConversationStore } from '../store/useConversationStore';
 import type { Message as ApiMessage } from '../api/qaApi';
 
-const { Title, Paragraph } = Typography;
 
 // 流式 Markdown 中未完整解析的链接/图片占位
 const markdownLoadingComponents = {
@@ -162,22 +159,14 @@ const AIChat = () => {
 
   return (
     <div className="ai-chat">
-      <div className="page-header">
-        <Title level={3}>AI智能咨询</Title>
-        <Paragraph style={{ color: '#666' }}>
-          与AI助手对话，获取水生生物相关专业知识
-        </Paragraph>
-      </div>
-
-      <div className="chat-container">
-        <Conversation />
-        <div className="chat-main">
-          <div className="chat-messages">
-            <Bubble.List
-              style={{
-                height: 'calc(100vh - 250px)',
-                padding: '16px',
-              }}
+      <div className="chat-main">
+        <div className="chat-messages">
+          <Bubble.List
+            style={{
+              flex: 1,
+              minHeight: 0,
+              padding: '16px',
+            }}
               items={formattedMessages.map((msg) => ({
                 key: String(msg.id),
                 role: msg.sender,
@@ -222,8 +211,8 @@ const AIChat = () => {
               }))}
               autoScroll={true}
             />
-          </div>
-          <div className="chat-input">
+        </div>
+        <div className="chat-input">
             <Sender
                 value={inputValue}
                 onSubmit={async (text) => {
@@ -317,7 +306,6 @@ const AIChat = () => {
                 }}
                 allowSpeech={true}
               />
-          </div>
         </div>
       </div>
     </div>

@@ -1,54 +1,113 @@
 .console-layout {
   min-height: 100vh;
+  display: flex;
 }
 
 .console-sider {
   background-color: #001529;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .console-sider .logo {
-  display: flex;
-  align-items: center;
   padding: 16px;
-  background-color: #001529;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.console-main {
-  background-color: #f0f2f5;
+.sider-top {
+  flex-shrink: 0;
 }
 
-.console-header {
-  background-color: #1890ff;
+.console-menu {
+  border-right: none !important;
+  background: transparent !important;
+}
+
+.sider-bottom {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
+.history-label {
+  padding: 12px 16px 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  flex-shrink: 0;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.console-content {
-  padding: 24px;
+.sider-conversation {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  height: calc(100vh - 64px);
+  padding: 0 8px 8px;
 }
 
-.content-wrapper {
+.sider-conversation .conversation-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.sider-footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sider-user-text {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sider-logout {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.sider-logout:hover {
+  color: #fff !important;
+}
+
+/* 右侧整块内容区 */
+.console-content {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.console-content .content-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
   background-color: #fff;
-  padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 对话页作为直接子元素时占满右侧 */
+.console-content > .ai-chat {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
