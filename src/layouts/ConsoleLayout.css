@@ -4,7 +4,7 @@
 }
 
 .console-sider {
-  background-color: #001529;
+  background-color: #F3F4F6;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -38,7 +38,7 @@
 .history-label {
   padding: 12px 16px 8px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.65);
+  color: #AAAAAC;
   flex-shrink: 0;
 }
 

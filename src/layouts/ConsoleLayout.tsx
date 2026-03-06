@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Layout, Menu, Typography, Avatar, Button, message } from 'antd';
+import { Layout, Menu, Typography, Avatar, Button, message, Divider } from 'antd';
 import {
-  MessageOutlined,
+  EditTwoTone,
   UploadOutlined,
   BookOutlined,
   UserOutlined,
@@ -28,7 +28,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [
-    { key: '/ai-chat', icon: <MessageOutlined />, label: 'AI智能咨询', path: '/ai-chat' },
+    { key: '/ai-chat', icon: <EditTwoTone />, label: '新对话', path: '/ai-chat' },
     { key: '/image-recognition', icon: <UploadOutlined />, label: '图像识别', path: '/image-recognition' },
     { key: '/knowledge-base', icon: <BookOutlined />, label: '知识库', path: '/knowledge-base' },
     { key: '/profile', icon: <UserOutlined />, label: '个人中心', path: '/profile' },
@@ -57,13 +57,13 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="sider-top">
           <div className="logo">
             {!collapsed && (
-              <Title level={5} style={{ margin: 0, color: '#fff' }}>
-                AquaMind
+              <Title level={5} style={{ margin: 0, color: '#242425' }}>
+                水生生物智能咨询平台
               </Title>
             )}
           </div>
           <Menu
-            theme="dark"
+            theme="light"
             mode="inline"
             selectedKeys={[location.pathname === '/' ? '/ai-chat' : location.pathname]}
             className="console-menu"
@@ -74,7 +74,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
             }))}
           />
         </div>
-
+        <Divider size="small"/> 
         {/* 下：历史聊天记录 */}
         <div className="sider-bottom">
           {!collapsed && (
@@ -88,7 +88,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         {/* 侧栏底部：用户与退出 */}
-        {!collapsed && (
+        {/* {!collapsed && (
           <div className="sider-footer">
             <Avatar size="small" icon={<UserOutlined />} />
             <span className="sider-user-text">用户</span>
@@ -99,7 +99,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
               className="sider-logout"
             />
           </div>
-        )}
+        )} */}
       </Sider>
 
       {/* 右侧：整块对话/内容区；对话页全高无外边距，其余页面保留卡片区 */}
