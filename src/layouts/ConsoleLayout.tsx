@@ -28,36 +28,11 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const menuItems: MenuItem[] = [
-    {
-      key: '/dashboard',
-      icon: <HomeOutlined />,
-      label: '首页',
-      path: '/dashboard',
-    },
-    {
-      key: '/dashboard/ai-chat',
-      icon: <MessageOutlined />,
-      label: 'AI智能咨询',
-      path: '/dashboard/ai-chat',
-    },
-    {
-      key: '/dashboard/image-recognition',
-      icon: <UploadOutlined />,
-      label: '图像识别',
-      path: '/dashboard/image-recognition',
-    },
-    {
-      key: '/dashboard/knowledge-base',
-      icon: <BookOutlined />,
-      label: '知识库',
-      path: '/dashboard/knowledge-base',
-    },
-    {
-      key: '/dashboard/profile',
-      icon: <UserOutlined />,
-      label: '个人中心',
-      path: '/dashboard/profile',
-    },
+    { key: '/', icon: <HomeOutlined />, label: '首页', path: '/' },
+    { key: '/ai-chat', icon: <MessageOutlined />, label: 'AI智能咨询', path: '/ai-chat' },
+    { key: '/image-recognition', icon: <UploadOutlined />, label: '图像识别', path: '/image-recognition' },
+    { key: '/knowledge-base', icon: <BookOutlined />, label: '知识库', path: '/knowledge-base' },
+    { key: '/profile', icon: <UserOutlined />, label: '个人中心', path: '/profile' },
   ];
 
   const { logout: logoutStore } = useUserStore();

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import App from '../App';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
@@ -9,16 +9,14 @@ import KnowledgeBase from '../pages/KnowledgeBase';
 import ConsoleLayout from '../layouts/ConsoleLayout';
 import AuthGuard from '../components/AuthGuard';
 import Profile from '../pages/Profile';
+
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
     children: [
-      { path: '/', element: <Navigate to="/dashboard" replace /> },
-      { path: '/login', element: <Login /> },
-      { path: '/register', element: <Register /> },
       {
-        path: '/dashboard',
+        index: true,
         element: (
           <AuthGuard>
             <ConsoleLayout>
@@ -27,8 +25,10 @@ export const router = createBrowserRouter([
           </AuthGuard>
         ),
       },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
       {
-        path: '/dashboard/ai-chat',
+        path: 'ai-chat',
         element: (
           <AuthGuard>
             <ConsoleLayout>
@@ -38,7 +38,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/dashboard/image-recognition',
+        path: 'image-recognition',
         element: (
           <AuthGuard>
             <ConsoleLayout>
@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/dashboard/knowledge-base',
+        path: 'knowledge-base',
         element: (
           <AuthGuard>
             <ConsoleLayout>
@@ -57,8 +57,8 @@ export const router = createBrowserRouter([
           </AuthGuard>
         ),
       },
-      { 
-        path: '/dashboard/profile', // 添加个人中心路由
+      {
+        path: 'profile',
         element: (
           <AuthGuard>
             <ConsoleLayout>

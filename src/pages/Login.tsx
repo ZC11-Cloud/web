@@ -41,7 +41,7 @@ const Login = () => {
       message.success('登录成功！');
 
       // 登录成功后，跳转到首页
-      navigate('/dashboard');
+      navigate('/');
     } finally {
       setLoading(false);
     }
