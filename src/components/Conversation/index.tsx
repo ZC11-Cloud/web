@@ -91,31 +91,31 @@ const Conversation = () => {
   });
   
   // 创建新对话
-  const newChatClick = async () => {
-    try {
-      const newConversation = await qaApi.createConversation({
-        title: `新对话 ${new Date().toLocaleString()}`,
-      });
+  // const newChatClick = async () => {
+  //   try {
+  //     const newConversation = await qaApi.createConversation({
+  //       title: `新对话 ${new Date().toLocaleString()}`,
+  //     });
       
-      message.success('创建新对话成功');
+  //     message.success('创建新对话成功');
       
-      // 刷新会话列表
-      fetchConversations();
+  //     // 刷新会话列表
+  //     fetchConversations();
       
-      // 设置当前会话为新创建的会话
-      setCurrentConversation(newConversation.id);
-    } catch (error) {
-      message.error('创建新对话失败');
-    }
-  };
+  //     // 设置当前会话为新创建的会话
+  //     setCurrentConversation(newConversation.id);
+  //   } catch (error) {
+  //     message.error('创建新对话失败');
+  //   }
+  // };
 
   return (
     <div className="conversation-container">
       <Conversations
-        creation={{
-          label: '新建对话',
-          onClick: newChatClick,
-        }}
+        // creation={{
+        //   label: '新建对话',
+        //   onClick: newChatClick,
+        // }}
         activeKey={currentConversationId?.toString()}
         menu={menuConfig}
         items={items}
