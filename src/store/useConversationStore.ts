@@ -24,7 +24,10 @@ interface ConversationStore {
   isStreaming: boolean;
   // Actions
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
-  setCurrentConversation: (id: number | null) => void;
+  setCurrentConversation: (
+    id: number | null,
+    options?: { skipFetch?: boolean }
+  ) => void;
   clearError: () => void;
   deleteConversation: (conversationId: number) => Promise<void>;
 
@@ -73,11 +76,11 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     }
   },
 
-  setCurrentConversation: (id) => {
+  setCurrentConversation: (id, options) => {
     set({ currentConversationId: id, messages: [] });
 
-    // 如果设置了会话ID，则自动获取该会话的消息
-    if (id !== null) {
+    // 如果设置了会话ID且未要求跳过拉取，则自动获取该会话的消息
+    if (id !== null && !options?.skipFetch) {
       get().fetchMessages(id);
     }
   },

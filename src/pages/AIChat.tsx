@@ -26,6 +26,7 @@ import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
 import './AIChat.css';
 import { useConversationStore } from '../store/useConversationStore';
+import qaApi from '../api/qaApi';
 import type { Message as ApiMessage } from '../api/qaApi';
 
 
@@ -54,6 +55,8 @@ const AIChat = () => {
     clearMessagesError,
     streamingContent,
     isStreaming,
+    fetchConversations,
+    setCurrentConversation,
   } = useConversationStore();
 
   const [inputValue, setInputValue] = useState('');
@@ -216,14 +219,33 @@ const AIChat = () => {
             <Sender
                 value={inputValue}
                 onSubmit={async (text) => {
-                  if (!text.trim() || !currentConversationId) {
-                    return;
-                  }
+                  if (!text.trim()) return;
+
                   const opts = {
                     use_rag: useRag,
                     use_image: useImage,
                     image_base64: imageBase64 ?? undefined,
                   };
+                  setInputValue('');
+                  setImageBase64(null);
+
+                  let conversationId = currentConversationId;
+                  if (!conversationId) {
+                    try {
+                      const newConv = await qaApi.createConversation({
+                        title:
+                          text.slice(0, 30).trim() ||
+                          `新对话 ${new Date().toLocaleString()}`,
+                      });
+                      await fetchConversations();
+                      setCurrentConversation(newConv.id, { skipFetch: true });
+                      conversationId = newConv.id;
+                    } catch {
+                      message.error('创建会话失败，请重试');
+                      return;
+                    }
+                  }
+
                   console.log('[DEBUG] AIChat 发送参数:', {
                     use_rag: opts.use_rag,
                     use_image: opts.use_image,
@@ -231,13 +253,13 @@ const AIChat = () => {
                       ? `${opts.image_base64.length} 字符`
                       : '未传',
                   });
-                  setInputValue('');
-                  await sendMessage(currentConversationId, text, opts);
-                  setImageBase64(null);
+                  await sendMessage(conversationId, text, opts);
                 }}
-                disabled={!currentConversationId}
+                disabled={false}
                 placeholder={
-                  currentConversationId ? '输入消息...' : '请先选择一个会话'
+                  currentConversationId
+                    ? '输入消息...'
+                    : '输入消息，发送将自动创建新对话'
                 }
                 onChange={(value) => setInputValue(value)}
                 footer={() => {
