@@ -117,6 +117,7 @@ const AIChat = () => {
             '你好！我是AquaMind智能助手，有什么关于水生生物的问题可以问我。',
           sender: 'ai' as const,
           timestamp: new Date(),
+          image_url: undefined,
         },
       ];
     }
@@ -126,6 +127,7 @@ const AIChat = () => {
       content: msg.content,
       sender: msg.role === 'user' ? ('user' as const) : ('ai' as const),
       timestamp: new Date(msg.create_time),
+      image_url: msg.image_url ?? undefined,
     }));
 
     if (isStreaming) {
@@ -134,6 +136,7 @@ const AIChat = () => {
         content: streamingContent || ' ',
         sender: 'ai' as const,
         timestamp: new Date(),
+        image_url: undefined,
       });
     }
     return list;
@@ -218,28 +221,48 @@ const AIChat = () => {
               ),
               loading: msg.sender === 'ai' && messagesLoading && msg.id !== -1,
               contentRender: (content: string) => (
-                <XMarkdown
-                  className={markdownThemeClass}
-                  content={content}
-                  paragraphTag="div"
-                  streaming={
-                    msg.sender === 'ai' && msg.id === -1
-                      ? {
-                          hasNextChunk: isStreaming,
-                          enableAnimation: true,
-                          incompleteMarkdownComponentMap: {
-                            link: 'loading-link',
-                            image: 'loading-image',
-                          },
-                        }
-                      : undefined
-                  }
-                  components={
-                    msg.sender === 'ai' && msg.id === -1
-                      ? markdownLoadingComponents
-                      : undefined
-                  }
-                />
+                <>
+                  {msg.sender === 'user' && msg.image_url && (
+                    <img
+                      src={
+                        msg.image_url.startsWith('http')
+                          ? msg.image_url
+                          : `${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')}${msg.image_url}`
+                      }
+                      alt="用户上传"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: 200,
+                        objectFit: 'contain',
+                        marginBottom: 8,
+                        borderRadius: 4,
+                        display: 'block',
+                      }}
+                    />
+                  )}
+                  <XMarkdown
+                    className={markdownThemeClass}
+                    content={content}
+                    paragraphTag="div"
+                    streaming={
+                      msg.sender === 'ai' && msg.id === -1
+                        ? {
+                            hasNextChunk: isStreaming,
+                            enableAnimation: true,
+                            incompleteMarkdownComponentMap: {
+                              link: 'loading-link',
+                              image: 'loading-image',
+                            },
+                          }
+                        : undefined
+                    }
+                    components={
+                      msg.sender === 'ai' && msg.id === -1
+                        ? markdownLoadingComponents
+                        : undefined
+                    }
+                  />
+                </>
               ),
             }))}
             autoScroll={true}

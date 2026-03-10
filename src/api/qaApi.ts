@@ -33,6 +33,8 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   create_time: string;
+  /** 用户消息附带图片时的访问 URL（本地存储或后期 OSS），历史记录中用于在气泡上方展示 */
+  image_url?: string | null;
 }
 
 // 获取消息列表参数接口
