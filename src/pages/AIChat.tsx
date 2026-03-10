@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Avatar,
   message,
@@ -7,8 +7,10 @@ import {
   theme,
   Upload,
   Button,
+  type GetProp,
+  type GetRef,
 } from 'antd';
-import { Actions, Bubble, Sender } from '@ant-design/x';
+import { Actions, Attachments, type AttachmentsProps, Bubble, Sender } from '@ant-design/x';
 
 const SenderSwitch = Sender.Switch;
 import {
@@ -19,6 +21,7 @@ import {
   PictureOutlined,
   PaperClipOutlined,
   OpenAIOutlined,
+  CloudUploadOutlined,
 } from '@ant-design/icons';
 import { XMarkdown } from '@ant-design/x-markdown';
 import type { UploadProps } from 'antd';
@@ -64,6 +67,13 @@ const AIChat = () => {
   const [useImage, setUseImage] = useState(false);
   const [useDeepSearch, setUseDeepSearch] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const [attachmentItems, setAttachmentItems] = useState<
+    GetProp<AttachmentsProps, 'items'>
+  >([]);
+
+  const attachmentsRef = useRef<GetRef<typeof Attachments>>(null);
+  const senderRef = useRef<GetRef<typeof Sender>>(null);
   const { theme: antdTheme } = theme.useToken();
 
   const uploadImageProps: UploadProps = {
@@ -160,6 +170,39 @@ const AIChat = () => {
     alignItems: 'center',
   };
 
+  const senderHeader = (
+    <Sender.Header
+      title="Attachments"
+      styles={{
+        content: {
+          padding: 0,
+        },
+      }}
+      open={attachmentsOpen}
+      onOpenChange={setAttachmentsOpen}
+      forceRender
+    >
+      <Attachments
+        ref={attachmentsRef}
+        beforeUpload={() => false}
+        items={attachmentItems}
+        onChange={({ fileList }) => setAttachmentItems(fileList)}
+        placeholder={(type) =>
+          type === 'drop'
+            ? {
+                title: 'Drop file here',
+              }
+            : {
+                icon: <CloudUploadOutlined />,
+                title: 'Upload files',
+                description: 'Click or drag files to this area to upload',
+              }
+        }
+        getDropContainer={() => senderRef.current?.nativeElement}
+      />
+    </Sender.Header>
+  );
+
   return (
     <div className="ai-chat">
       <div className="chat-main">
@@ -217,6 +260,16 @@ const AIChat = () => {
         </div>
         <div className="chat-input">
             <Sender
+                ref={senderRef}
+                header={senderHeader}
+                prefix={
+                  <Button
+                    type="text"
+                    style={{ fontSize: 16 }}
+                    icon={<PaperClipOutlined />}
+                    onClick={() => setAttachmentsOpen(!attachmentsOpen)}
+                  />
+                }
                 value={inputValue}
                 onSubmit={async (text) => {
                   if (!text.trim()) return;
@@ -228,6 +281,8 @@ const AIChat = () => {
                   };
                   setInputValue('');
                   setImageBase64(null);
+                  setAttachmentItems([]);
+                  setAttachmentsOpen(false);
 
                   let conversationId = currentConversationId;
                   if (!conversationId) {
@@ -253,6 +308,12 @@ const AIChat = () => {
                   });
                   await sendMessage(conversationId, text, opts);
                 }}
+                onPasteFile={(files) => {
+                  for (const file of files) {
+                    attachmentsRef.current?.upload(file);
+                  }
+                  setAttachmentsOpen(true);
+                }}
                 disabled={false}
                 placeholder={
                   currentConversationId
@@ -264,7 +325,6 @@ const AIChat = () => {
                   return (
                     <Flex justify="space-between" align="center">
                       <Flex gap="small" align="center">
-                        <Button type="text" icon={<PaperClipOutlined />} />
                         <SenderSwitch
                           value={useDeepSearch}
                           icon={<OpenAIOutlined />}
