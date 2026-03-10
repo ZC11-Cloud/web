@@ -68,7 +68,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
     if (key === '/ai-chat') {
       try {
         const newConversation = await qaApi.createConversation({
-          title: `新对话 ${new Date().toLocaleString()}`,
+          title: '新对话',
         });
 
         message.success('创建新对话成功');

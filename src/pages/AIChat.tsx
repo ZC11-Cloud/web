@@ -233,9 +233,7 @@ const AIChat = () => {
                   if (!conversationId) {
                     try {
                       const newConv = await qaApi.createConversation({
-                        title:
-                          text.slice(0, 30).trim() ||
-                          `新对话 ${new Date().toLocaleString()}`,
+                        title: '新对话',
                       });
                       await fetchConversations();
                       setCurrentConversation(newConv.id, { skipFetch: true });

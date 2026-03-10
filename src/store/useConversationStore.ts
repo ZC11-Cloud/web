@@ -157,6 +157,19 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         onDone: async () => {
           set({ isStreaming: false, streamingContent: '' });
           await get().fetchMessages(conversationId);
+          const { messages, conversations } = get();
+          const conv = conversations.find((c) => c.id === conversationId);
+          if (
+            messages.length === 2 &&
+            (conv?.title === '新对话' || conv?.title?.trim() === '新对话')
+          ) {
+            try {
+              await qaApi.generateConversationTitle(conversationId);
+              await get().fetchConversations();
+            } catch {
+              // 生成失败时静默忽略，保持「新对话」
+            }
+          }
         },
         onError: (detail) => {
           set({

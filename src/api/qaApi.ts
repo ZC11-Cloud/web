@@ -105,6 +105,15 @@ const qaApi = {
   deleteConversation: (conversation_id: number): Promise<void> => {
     return axiosInstance.delete(`/qa/conversations/${conversation_id}`);
   },
+
+  // 根据首轮对话内容生成并更新会话标题
+  generateConversationTitle: (
+    conversationId: number
+  ): Promise<{ title: string }> => {
+    return axiosInstance.post(
+      `/qa/conversations/${conversationId}/generate-title`
+    );
+  },
   // 获取消息
   getMessages: (params: MessagesParams): Promise<MessagesResponse> => {
     return axiosInstance.get(
