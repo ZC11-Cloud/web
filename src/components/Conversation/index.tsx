@@ -13,6 +13,7 @@ import { message } from 'antd';
 import { useConversationStore } from '../../store/useConversationStore';
 import qaApi from '../../api/qaApi';
 import { useXConversations } from '@ant-design/x-sdk';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Conversation = () => {
   const {
@@ -24,7 +25,8 @@ const Conversation = () => {
     clearError,
     deleteConversation,
   } = useConversationStore();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -84,7 +86,7 @@ const Conversation = () => {
       },
     ],
     onClick: (itemInfo) => {
-      console.log(itemInfo);
+      // console.log(itemInfo);
       console.log(`Click ${itemInfo.key}`);
       itemInfo.domEvent.stopPropagation();
     },
@@ -119,7 +121,12 @@ const Conversation = () => {
         activeKey={currentConversationId?.toString()}
         menu={menuConfig}
         items={items}
-        onActiveChange={(value: string) => setCurrentConversation(parseInt(value, 10))}
+        onActiveChange={(value: string) => {
+          if (location.pathname !== "/ai-chat" && location.pathname !== "/") {
+            navigate(`/ai-chat`);
+          }
+          setCurrentConversation(parseInt(value, 10))
+        }}
       />
     </div>
   );
