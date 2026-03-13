@@ -39,7 +39,12 @@ interface ConversationStore {
   sendMessage: (
     conversationId: number,
     content: string,
-    options?: { use_rag?: boolean; use_image?: boolean; image_base64?: string | null }
+    options?: {
+      use_rag?: boolean;
+      use_image?: boolean;
+      image_base64?: string | null;
+      model_name?: string;
+    }
   ) => Promise<void>;
   clearMessagesError: () => void;
 }
@@ -130,7 +135,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   // 发送消息（流式输出）
   sendMessage: async (conversationId, content, options = {}) => {
-    const { use_rag, use_image, image_base64 } = options;
+    const { use_rag, use_image, image_base64, model_name } = options;
     const tempUserMessage: Message = {
       id: Date.now(),
       conversation_id: conversationId,
@@ -151,6 +156,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         use_rag,
         use_image,
         image_base64,
+        model_name,
         onChunk: (chunk) => {
           set((state) => ({ streamingContent: state.streamingContent + chunk }));
         },

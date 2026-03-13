@@ -23,6 +23,7 @@ import { useUserStore } from '../store/useUserStore';
 import Conversation from '../components/Conversation';
 import qaApi from '../api/qaApi';
 import { useConversationStore } from '../store/useConversationStore';
+import { useModelStore, DEFAULT_MODEL_NAME } from '../store/useModelStore';
 
 const { Sider, Content, Header } = Layout;
 const { Title } = Typography;
@@ -39,6 +40,13 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { fetchConversations, setCurrentConversation } = useConversationStore();
+  const { currentModel, setCurrentModel } = useModelStore();
+
+  const modelOptions = [
+    { label: 'Qwen3.5-Plus', value: 'qwen-plus' },
+    { label: 'Qwen3.5-Turbo', value: 'qwen-turbo' },
+    { label: 'Qwen3.5-Max', value: 'qwen-max' },
+  ];
   const menuItems: MenuItem[] = [
     {
       key: '/ai-chat',
@@ -160,10 +168,11 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       </Sider>
       <Layout>
         <Header className="console-header">
-          <Select 
-            defaultValue="Qwen3.5-Plus"
-            options={[{ value: 'Qwen3.5-Plus', label: 'Qwen3.5-Plus' }]}
-            style={{ width: 120 }}
+          <Select
+            value={currentModel || DEFAULT_MODEL_NAME}
+            options={modelOptions}
+            style={{ width: 160 }}
+            onChange={(value) => setCurrentModel(value)}
           />
         </Header>
         <Content className="console-content">

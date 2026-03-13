@@ -22,6 +22,7 @@ import './AIChat.css';
 import { useConversationStore } from '../store/useConversationStore';
 import qaApi from '../api/qaApi';
 import type { Message as ApiMessage } from '../api/qaApi';
+import { useModelStore } from '../store/useModelStore';
 
 // 流式 Markdown 中未完整解析的链接/图片占位
 const markdownLoadingComponents = {
@@ -51,6 +52,7 @@ const AIChat = () => {
     fetchConversations,
     setCurrentConversation,
   } = useConversationStore();
+  const { currentModel } = useModelStore();
 
   const [inputValue, setInputValue] = useState('');
   const [useRag, setUseRag] = useState(false);
@@ -294,6 +296,7 @@ const AIChat = () => {
                 use_rag: useRag,
                 use_image: useImage,
                 image_base64: imageBase64 ?? undefined,
+                model_name: currentModel,
               };
               setInputValue('');
               setImageBase64(null);
