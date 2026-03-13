@@ -23,6 +23,7 @@ import { useConversationStore } from '../store/useConversationStore';
 import qaApi from '../api/qaApi';
 import type { Message as ApiMessage } from '../api/qaApi';
 import { useModelStore } from '../store/useModelStore';
+import ThoughtChainPanel from '../components/ThoughtChainPanel';
 
 // 流式 Markdown 中未完整解析的链接/图片占位
 const markdownLoadingComponents = {
@@ -146,6 +147,13 @@ const AIChat = () => {
 
   const formattedMessages = formatMessages();
 
+  const lastAiIndex = formattedMessages.reduce<number>((lastIndex, msg, index) => {
+    if (msg.sender === 'ai' && msg.id !== 0 && msg.id !== -1) {
+      return index;
+    }
+    return lastIndex;
+  }, -1);
+
   const actionItems = [
     {
       key: 'retry',
@@ -206,7 +214,7 @@ const AIChat = () => {
               minHeight: 0,
               padding: '16px',
             }}
-            items={formattedMessages.map((msg) => ({
+            items={formattedMessages.map((msg, index) => ({
               key: String(msg.id),
               role: msg.sender,
               content: msg.content,
@@ -224,6 +232,10 @@ const AIChat = () => {
               loading: msg.sender === 'ai' && messagesLoading && msg.id !== -1,
               contentRender: (content: string) => (
                 <>
+                  {currentConversationId &&
+                    index === lastAiIndex && (
+                      <ThoughtChainPanel className="thought-chain-wrapper" />
+                    )}
                   {msg.sender === 'user' && msg.image_url && (
                     <img
                       src={
