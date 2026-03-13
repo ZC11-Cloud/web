@@ -111,3 +111,11 @@
   flex-direction: column;
   min-height: 0;
 }
+
+.console-header {
+  background-color: #fff;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}

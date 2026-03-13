@@ -7,6 +7,8 @@ import {
   Button,
   message,
   Divider,
+  Dropdown,
+  Select,
 } from 'antd';
 import {
   EditTwoTone,
@@ -22,7 +24,7 @@ import Conversation from '../components/Conversation';
 import qaApi from '../api/qaApi';
 import { useConversationStore } from '../store/useConversationStore';
 
-const { Sider, Content } = Layout;
+const { Sider, Content, Header } = Layout;
 const { Title } = Typography;
 
 interface MenuItem {
@@ -156,15 +158,22 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         )} */}
       </Sider>
-
-      {/* 右侧：整块对话/内容区；对话页全高无外边距，其余页面保留卡片区 */}
-      <Content className="console-content">
-        {location.pathname === '/' || location.pathname === '/ai-chat' ? (
-          children
-        ) : (
-          <div className="content-wrapper">{children}</div>
-        )}
-      </Content>
+      <Layout>
+        <Header className="console-header">
+          <Select 
+            defaultValue="Qwen3.5-Plus"
+            options={[{ value: 'Qwen3.5-Plus', label: 'Qwen3.5-Plus' }]}
+            style={{ width: 120 }}
+          />
+        </Header>
+        <Content className="console-content">
+          {location.pathname === '/' || location.pathname === '/ai-chat' ? (
+            children
+          ) : (
+            <div className="content-wrapper">{children}</div>
+          )}
+        </Content>
+      </Layout>
     </Layout>
   );
 };
