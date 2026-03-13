@@ -166,7 +166,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         )} */}
       </Sider>
-      <Layout>
+      <Layout className="console-layout-content">
         <Header className="console-header">
           <Select
             value={currentModel || DEFAULT_MODEL_NAME}

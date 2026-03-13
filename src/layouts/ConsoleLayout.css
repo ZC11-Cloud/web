@@ -119,3 +119,13 @@
   display: flex;
   align-items: center;
 }
+
+.console-layout-content {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
