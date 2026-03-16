@@ -167,14 +167,16 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         )} */}
       </Sider>
       <Layout className="console-layout-content">
-        <Header className="console-header">
-          <Select
-            value={currentModel || DEFAULT_MODEL_NAME}
-            options={modelOptions}
-            style={{ width: 160 }}
-            onChange={(value) => setCurrentModel(value)}
-          />
-        </Header>
+        {(location.pathname === '/' || location.pathname === '/ai-chat') && (
+          <Header className="console-header">
+            <Select
+              value={currentModel || DEFAULT_MODEL_NAME}
+              options={modelOptions}
+              style={{ width: 160 }}
+              onChange={(value) => setCurrentModel(value)}
+            />
+          </Header>
+        )}
         <Content className="console-content">
           {location.pathname === '/' || location.pathname === '/ai-chat' ? (
             children
