@@ -16,6 +16,8 @@ import {
   BookOutlined,
   UserOutlined,
   LogoutOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './ConsoleLayout.css';
@@ -24,7 +26,6 @@ import Conversation from '../components/Conversation';
 import qaApi from '../api/qaApi';
 import { useConversationStore } from '../store/useConversationStore';
 import { useModelStore, DEFAULT_MODEL_NAME } from '../store/useModelStore';
-
 const { Sider, Content, Header } = Layout;
 const { Title } = Typography;
 
@@ -39,9 +40,18 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { fetchConversations, setCurrentConversation } = useConversationStore();
+  const {
+    fetchConversations,
+    setCurrentConversation,
+    conversations,
+    currentConversationId,
+  } = useConversationStore();
   const { currentModel, setCurrentModel } = useModelStore();
   const { user } = useUserStore();
+
+  const currentConversation = conversations.find(
+    (c) => c.id === currentConversationId
+  );
 
   const modelOptions = [
     { label: 'Qwen3.5-Plus', value: 'qwen-plus' },
@@ -164,12 +174,22 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       <Layout className="console-layout-content">
         {(location.pathname === '/' || location.pathname === '/ai-chat') && (
           <Header className="console-header">
+            <Button
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ marginRight: 16, background: '#fff', width: 36 }}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </Button>
             <Select
               value={currentModel || DEFAULT_MODEL_NAME}
               options={modelOptions}
               style={{ width: 160 }}
               onChange={(value) => setCurrentModel(value)}
             />
+            <div className="console-header-title">
+              {currentConversation?.title || '新对话'}
+              <div className="console-header-subtitle">本内容由ai生成</div>
+            </div>
           </Header>
         )}
         <Content className="console-content">
