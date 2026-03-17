@@ -41,6 +41,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { fetchConversations, setCurrentConversation } = useConversationStore();
   const { currentModel, setCurrentModel } = useModelStore();
+  const { user } = useUserStore();
 
   const modelOptions = [
     { label: 'Qwen3.5-Plus', value: 'qwen-plus' },
@@ -151,20 +152,14 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
             </>
           )}
         </div>
-
+        <Divider size="small" />
         {/* 侧栏底部：用户与退出 */}
-        {/* {!collapsed && (
+        {!collapsed && (
           <div className="sider-footer">
             <Avatar size="small" icon={<UserOutlined />} />
-            <span className="sider-user-text">用户</span>
-            <Button
-              type="text"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              className="sider-logout"
-            />
+            <span className="sider-user-text">{user?.username || '用户'}</span>
           </div>
-        )} */}
+        )}
       </Sider>
       <Layout className="console-layout-content">
         {(location.pathname === '/' || location.pathname === '/ai-chat') && (
