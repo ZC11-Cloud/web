@@ -53,14 +53,10 @@ const Login = () => {
           <Card className="login-card">
             <div className="login-header">
               <div className="logo">
-                <CiOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
                 <Title level={2} style={{ margin: 0, marginLeft: '10px' }}>
-                  AquaMind
+                  水生生物图像识别与智能咨询平台
                 </Title>
               </div>
-              <Paragraph style={{ margin: '10px 0 30px 0', color: '#666' }}>
-                水生生物图像识别与智能咨询平台
-              </Paragraph>
             </div>
 
             <Form

@@ -232,10 +232,10 @@ const AIChat = () => {
               loading: msg.sender === 'ai' && messagesLoading && msg.id !== -1,
               contentRender: (content: string) => (
                 <>
-                  {currentConversationId &&
+                  {/* {currentConversationId &&
                     index === lastAiIndex && (
                       <ThoughtChainPanel className="thought-chain-wrapper" />
-                    )}
+                    )} */}
                   {msg.sender === 'user' && msg.image_url && (
                     <img
                       src={
