@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Avatar, message, Flex, Skeleton, theme, Button } from 'antd';
-import { Actions, Bubble, Attachments, Sender } from '@ant-design/x';
+import { Actions, Bubble, Attachments, Sender, Sources } from '@ant-design/x';
 import type { AttachmentsProps } from '@ant-design/x';
 import type { GetProp, GetRef } from 'antd';
 
@@ -21,9 +21,34 @@ import '@ant-design/x-markdown/themes/dark.css';
 import './AIChat.css';
 import { useConversationStore } from '../store/useConversationStore';
 import qaApi from '../api/qaApi';
-import type { Message as ApiMessage } from '../api/qaApi';
+import type { Message as ApiMessage, KnowledgeCitation } from '../api/qaApi';
 import { useModelStore } from '../store/useModelStore';
 import ThoughtChainPanel from '../components/ThoughtChainPanel';
+
+// 知识库引用上标组件：有 citations 时用 Sources 渲染可溯源链接，否则退化为普通 sup
+const SupCitation = React.memo(
+  (props: { children?: React.ReactNode; citations?: KnowledgeCitation[] | null }) => {
+    const { children, citations } = props;
+    const key = parseInt(`${children}` || '0', 10);
+    if (!citations?.length) {
+      return <sup>{children}</sup>;
+    }
+    const items = citations.map((c) => ({
+      key: c.key,
+      title: `${c.key}. ${c.filename}`,
+      url: `/knowledge-base/documents/${c.source_id}`,
+      description: c.snippet,
+    }));
+    return (
+      <Sources
+        activeKey={key}
+        title={children}
+        items={items}
+        inline={true}
+      />
+    );
+  }
+);
 
 // 流式 Markdown 中未完整解析的链接/图片占位
 const markdownLoadingComponents = {
@@ -131,6 +156,7 @@ const AIChat = () => {
       sender: msg.role === 'user' ? ('user' as const) : ('ai' as const),
       timestamp: new Date(msg.create_time),
       image_url: msg.image_url ?? undefined,
+      citations: msg.citations ?? undefined,
     }));
 
     if (isStreaming) {
@@ -140,6 +166,7 @@ const AIChat = () => {
         sender: 'ai' as const,
         timestamp: new Date(),
         image_url: undefined,
+        citations: undefined,
       });
     }
     return list;
@@ -270,11 +297,21 @@ const AIChat = () => {
                           }
                         : undefined
                     }
-                    components={
-                      msg.sender === 'ai' && msg.id === -1
+                    components={{
+                      ...(msg.sender === 'ai' && msg.id === -1
                         ? markdownLoadingComponents
-                        : undefined
-                    }
+                        : {}),
+                      ...(msg.sender === 'ai' && 'citations' in msg
+                        ? {
+                            sup: (p: { children?: React.ReactNode }) => (
+                              <SupCitation
+                                {...p}
+                                citations={msg.citations}
+                              />
+                            ),
+                          }
+                        : {}),
+                    }}
                   />
                 </>
               ),

@@ -5,6 +5,7 @@ import Register from '../pages/Register';
 import AIChat from '../pages/AIChat';
 import ImageRecognition from '../pages/ImageRecognition';
 import KnowledgeBase from '../pages/KnowledgeBase';
+import KnowledgeDocumentDetail from '../pages/KnowledgeDocumentDetail';
 import ConsoleLayout from '../layouts/ConsoleLayout';
 import AuthGuard from '../components/AuthGuard';
 import Profile from '../pages/Profile';
@@ -52,6 +53,16 @@ export const router = createBrowserRouter([
           <AuthGuard>
             <ConsoleLayout>
               <KnowledgeBase />
+            </ConsoleLayout>
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'knowledge-base/documents/:sourceId',
+        element: (
+          <AuthGuard>
+            <ConsoleLayout>
+              <KnowledgeDocumentDetail />
             </ConsoleLayout>
           </AuthGuard>
         ),

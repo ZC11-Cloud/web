@@ -26,6 +26,14 @@ export interface CreateConversationRequest {
   title: string;
 }
 
+// 知识库引用，供 Sources 组件溯源
+export interface KnowledgeCitation {
+  key: number;
+  source_id: string;
+  filename: string;
+  snippet: string;
+}
+
 // 消息接口
 export interface Message {
   id: number;
@@ -35,6 +43,8 @@ export interface Message {
   create_time: string;
   /** 用户消息附带图片时的访问 URL（本地存储或后期 OSS），历史记录中用于在气泡上方展示 */
   image_url?: string | null;
+  /** AI 回复引用的知识库来源，供 Sources 上标溯源 */
+  citations?: KnowledgeCitation[] | null;
 }
 
 // 获取消息列表参数接口
@@ -71,6 +81,7 @@ export interface StreamEventChunk {
 
 export interface StreamEventDone {
   type: 'done';
+  citations?: KnowledgeCitation[];
 }
 
 export interface StreamEventError {
@@ -88,7 +99,7 @@ export interface SendMessageStreamOptions {
   /** 可选：指定后端使用的模型名称 */
   model_name?: string;
   onChunk: (content: string) => void;
-  onDone?: () => void;
+  onDone?: (citations?: KnowledgeCitation[]) => void;
   onError?: (detail: string) => void;
   signal?: AbortSignal;
 }
@@ -227,7 +238,7 @@ const qaApi = {
             if (event.type === 'chunk') {
               onChunk(event.content);
             } else if (event.type === 'done') {
-              onDone?.();
+              onDone?.(event.citations);
             } else if (event.type === 'error') {
               onError?.(event.detail);
             }
@@ -243,7 +254,7 @@ const qaApi = {
           try {
             const event = JSON.parse(raw) as StreamEvent;
             if (event.type === 'chunk') onChunk(event.content);
-            else if (event.type === 'done') onDone?.();
+            else if (event.type === 'done') onDone?.(event.citations);
             else if (event.type === 'error') onError?.(event.detail);
           } catch {
             // ignore
