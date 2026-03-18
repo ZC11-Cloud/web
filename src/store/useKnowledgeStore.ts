@@ -16,10 +16,15 @@ interface KnowledgeStore {
   currentDocument: KnowledgeDocumentItem | null;
   detailLoading: boolean;
   detailError: string | null;
+  /** 文档完整正文（用于文档阅读） */
+  documentContent: string | null;
+  contentLoading: boolean;
+  contentError: string | null;
   uploadLoading: boolean;
 
   fetchDocuments: (params?: Partial<KnowledgeDocumentsParams>) => Promise<void>;
   fetchDocument: (sourceId: string) => Promise<void>;
+  fetchDocumentContent: (sourceId: string) => Promise<void>;
   uploadDocument: (file: File) => Promise<void>;
   deleteDocument: (sourceId: string) => Promise<void>;
 
@@ -39,6 +44,9 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
   currentDocument: null,
   detailLoading: false,
   detailError: null,
+  documentContent: null,
+  contentLoading: false,
+  contentError: null,
   uploadLoading: false,
 
   fetchDocuments: async (params = {}) => {
@@ -72,6 +80,20 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
       set({
         detailError: err instanceof Error ? err.message : '获取文档详情失败',
         detailLoading: false,
+      });
+    }
+  },
+
+  fetchDocumentContent: async (sourceId: string) => {
+    set({ contentLoading: true, contentError: null, documentContent: null });
+
+    try {
+      const res = await knowledgeApi.getDocumentContent(sourceId);
+      set({ documentContent: res.content, contentLoading: false });
+    } catch (err) {
+      set({
+        contentError: err instanceof Error ? err.message : '获取文档正文失败',
+        contentLoading: false,
       });
     }
   },
@@ -114,6 +136,11 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
   setPage: (page) => set({ page }),
   setPageSize: (pageSize) => set({ pageSize }),
   clearCurrentDocument: () =>
-    set({ currentDocument: null, detailError: null }),
+    set({
+      currentDocument: null,
+      detailError: null,
+      documentContent: null,
+      contentError: null,
+    }),
   clearError: () => set({ error: null, detailError: null }),
 }));

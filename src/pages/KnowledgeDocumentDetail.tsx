@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { Typography, Spin, Button, Tag, Space, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
@@ -14,7 +15,11 @@ const KnowledgeDocumentDetail = () => {
     currentDocument,
     detailLoading,
     detailError,
+    documentContent,
+    contentLoading,
+    contentError,
     fetchDocument,
+    fetchDocumentContent,
     clearCurrentDocument,
   } = useKnowledgeStore();
 
@@ -24,6 +29,12 @@ const KnowledgeDocumentDetail = () => {
     }
     return () => clearCurrentDocument();
   }, [sourceId, fetchDocument, clearCurrentDocument]);
+
+  useEffect(() => {
+    if (sourceId && currentDocument) {
+      fetchDocumentContent(sourceId);
+    }
+  }, [sourceId, currentDocument, fetchDocumentContent]);
 
   if (!sourceId) {
     message.error('缺少文档标识');
@@ -60,6 +71,9 @@ const KnowledgeDocumentDetail = () => {
     );
   }
 
+  const isMarkdown =
+    currentDocument.original_filename.toLowerCase().endsWith('.md');
+
   return (
     <div className="knowledge-document-detail">
       <Button
@@ -77,9 +91,25 @@ const KnowledgeDocumentDetail = () => {
             <Tag key={index}>{tag}</Tag>
           ))}
         </Space>
-        <Paragraph style={{ whiteSpace: 'pre-wrap' }}>
-          {currentDocument.summary || '暂无内容摘要'}
-        </Paragraph>
+        {contentLoading ? (
+          <div className="detail-content-loading">
+            <Spin tip="加载正文..." />
+          </div>
+        ) : contentError ? (
+          <Paragraph type="danger">{contentError}</Paragraph>
+        ) : documentContent ? (
+          isMarkdown ? (
+            <div className="detail-content-body markdown-body">
+              <ReactMarkdown>{documentContent}</ReactMarkdown>
+            </div>
+          ) : (
+            <Paragraph style={{ whiteSpace: 'pre-wrap' }} className="detail-content-body">
+              {documentContent}
+            </Paragraph>
+          )
+        ) : (
+          <Paragraph type="secondary">暂无正文内容</Paragraph>
+        )}
         <Paragraph type="secondary" style={{ marginTop: 24 }}>
           文档 ID: {currentDocument.source_id} · 分块数: {currentDocument.chunk_count}
         </Paragraph>

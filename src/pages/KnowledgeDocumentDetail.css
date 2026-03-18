@@ -18,3 +18,51 @@
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
+
+.knowledge-document-detail .detail-content-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.knowledge-document-detail .detail-content-body {
+  margin-top: 16px;
+  line-height: 1.7;
+}
+
+.knowledge-document-detail .markdown-body h1,
+.knowledge-document-detail .markdown-body h2,
+.knowledge-document-detail .markdown-body h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.knowledge-document-detail .markdown-body p {
+  margin-bottom: 12px;
+}
+
+.knowledge-document-detail .markdown-body ul,
+.knowledge-document-detail .markdown-body ol {
+  margin-bottom: 12px;
+  padding-left: 24px;
+}
+
+.knowledge-document-detail .markdown-body code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.knowledge-document-detail .markdown-body pre {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.knowledge-document-detail .markdown-body pre code {
+  background: none;
+  padding: 0;
+}

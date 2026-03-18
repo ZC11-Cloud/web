@@ -38,6 +38,14 @@ export interface KnowledgeDeleteResponse {
   chunks_deleted: number;
 }
 
+/** 文档完整正文响应（用于文档阅读） */
+export interface KnowledgeDocumentContentResponse {
+  source_id: string;
+  original_filename: string;
+  content: string;
+  file_ext: string;
+}
+
 const knowledgeApi = {
   /** 上传文档 */
   uploadDocument: (file: File): Promise<KnowledgeUploadResponse> => {
@@ -65,6 +73,15 @@ const knowledgeApi = {
   /** 获取单个文档详情 */
   getDocument: (sourceId: string): Promise<KnowledgeDocumentItem> => {
     return axiosInstance.get(`/knowledge/documents/${encodeURIComponent(sourceId)}`);
+  },
+
+  /** 获取文档完整正文（用于文档阅读） */
+  getDocumentContent: (
+    sourceId: string
+  ): Promise<KnowledgeDocumentContentResponse> => {
+    return axiosInstance.get(
+      `/knowledge/documents/${encodeURIComponent(sourceId)}/content`
+    );
   },
 
   /** 删除文档 */

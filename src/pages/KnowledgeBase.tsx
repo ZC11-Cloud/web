@@ -21,6 +21,7 @@ import {
 import './KnowledgeBase.css';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 const { Title, Paragraph } = Typography;
 const { Search } = Input;
 
@@ -29,6 +30,7 @@ const ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.md'];
 const ACCEPT = '.pdf,.txt,.md';
 
 const KnowledgeBase = () => {
+  const navigate = useNavigate();
   const { documents, fetchDocuments, uploadDocument, uploadLoading } =
     useKnowledgeStore();
   useEffect(() => {
@@ -174,7 +176,12 @@ const KnowledgeBase = () => {
         <Row gutter={[16, 16]}>
           {documents.map((item) => (
             <Col xs={24} sm={12} md={8} key={item.source_id}>
-              <Card hoverable className="knowledge-card">
+              <Card
+                hoverable
+                className="knowledge-card"
+                onClick={() => navigate(`/knowledge-base/documents/${encodeURIComponent(item.source_id)}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="card-header">
                   {/* <Tag color="blue" style={{ marginBottom: '10px' }}>
                     {item.category}
