@@ -47,7 +47,17 @@ const Conversation = () => {
   const items: GetProp<ConversationsProps, 'items'> = sortedConversations.map(
     (conv) => ({
       key: conv.id.toString(),
-      label: conv.title,
+      label: (
+        <span
+          className={
+            isChatRoute && conv.id === currentConversationId
+              ? 'conversation-title-active'
+              : undefined
+          }
+        >
+          {conv.title}
+        </span>
+      ),
     })
   );
 

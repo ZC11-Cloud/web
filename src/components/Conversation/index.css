@@ -16,3 +16,14 @@
 .conversation-container::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.28);
 }
+
+/* 历史对话选中项标题加粗 */
+.conversation-container .ant-conversations-item-active .ant-conversations-item-label,
+.conversation-container .ant-conversations-item[aria-selected='true'] .ant-conversations-item-label,
+.conversation-container [aria-selected='true'] .ant-conversations-item-label {
+  font-weight: 600;
+}
+
+.conversation-title-active {
+  font-weight: 600;
+}
