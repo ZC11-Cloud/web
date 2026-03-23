@@ -80,3 +80,28 @@
   border: 0;
   background: #f8f8f8;
 }
+
+/* Word（.docx）由 docx-preview 渲染，适当放宽宽度并允许横向滚动 */
+.knowledge-document-detail.docx-reading {
+  max-width: 960px;
+}
+
+.knowledge-document-detail .docx-preview-wrapper {
+  margin-top: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 16px;
+  overflow-x: auto;
+  min-height: 200px;
+}
+
+.knowledge-document-detail .docx-preview-mount {
+  min-height: 120px;
+}
+
+/* docx-preview 内部段落与表格留白 */
+.knowledge-document-detail .docx-preview-root {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}

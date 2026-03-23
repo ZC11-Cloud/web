@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { renderAsync } from 'docx-preview';
 import { Typography, Spin, Button, Tag, Space, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
@@ -26,6 +27,10 @@ const KnowledgeDocumentDetail = () => {
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [docxBlob, setDocxBlob] = useState<Blob | null>(null);
+  const [docxLoading, setDocxLoading] = useState(false);
+  const [docxError, setDocxError] = useState<string | null>(null);
+  const docxContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (sourceId) {
@@ -37,8 +42,12 @@ const KnowledgeDocumentDetail = () => {
   useEffect(() => {
     const loadDocumentBody = async () => {
       if (!sourceId || !currentDocument) return;
-      const isPdf = currentDocument.original_filename.toLowerCase().endsWith('.pdf');
+      const name = currentDocument.original_filename.toLowerCase();
+      const isPdf = name.endsWith('.pdf');
+      const isDocx = name.endsWith('.docx');
       if (isPdf) {
+        setDocxBlob(null);
+        setDocxError(null);
         setPdfLoading(true);
         setPdfError(null);
         if (pdfBlobUrl) {
@@ -56,7 +65,28 @@ const KnowledgeDocumentDetail = () => {
         }
         return;
       }
+      if (isDocx) {
+        setPdfError(null);
+        if (pdfBlobUrl) {
+          URL.revokeObjectURL(pdfBlobUrl);
+          setPdfBlobUrl(null);
+        }
+        setDocxBlob(null);
+        setDocxLoading(true);
+        setDocxError(null);
+        try {
+          const blob = await knowledgeApi.downloadDocument(sourceId);
+          setDocxBlob(blob);
+        } catch (err) {
+          setDocxError(err instanceof Error ? err.message : 'Word 文档加载失败');
+        } finally {
+          setDocxLoading(false);
+        }
+        return;
+      }
       setPdfError(null);
+      setDocxBlob(null);
+      setDocxError(null);
       if (pdfBlobUrl) {
         URL.revokeObjectURL(pdfBlobUrl);
         setPdfBlobUrl(null);
@@ -65,6 +95,33 @@ const KnowledgeDocumentDetail = () => {
     }
     loadDocumentBody();
   }, [sourceId, currentDocument, fetchDocumentContent]);
+
+  useLayoutEffect(() => {
+    const el = docxContainerRef.current;
+    if (!docxBlob || !el) return;
+    const name = currentDocument?.original_filename.toLowerCase() ?? '';
+    if (!name.endsWith('.docx')) return;
+
+    let cancelled = false;
+    el.innerHTML = '';
+    renderAsync(docxBlob, el, undefined, {
+      className: 'docx-preview-root',
+      inWrapper: true,
+      ignoreWidth: false,
+      ignoreHeight: false,
+      ignoreFonts: false,
+      breakPages: true,
+    }).catch((err) => {
+      if (!cancelled) {
+        setDocxError(err instanceof Error ? err.message : 'Word 文档渲染失败');
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      el.innerHTML = '';
+    };
+  }, [docxBlob, currentDocument?.original_filename]);
 
   useEffect(() => {
     return () => {
@@ -112,9 +169,12 @@ const KnowledgeDocumentDetail = () => {
   const isMarkdown =
     currentDocument.original_filename.toLowerCase().endsWith('.md');
   const isPdf = currentDocument.original_filename.toLowerCase().endsWith('.pdf');
+  const isDocx = currentDocument.original_filename.toLowerCase().endsWith('.docx');
 
   return (
-    <div className="knowledge-document-detail">
+    <div
+      className={`knowledge-document-detail${isDocx ? ' docx-reading' : ''}`}
+    >
       <Button
         type="text"
         icon={<ArrowLeftOutlined />}
@@ -147,6 +207,22 @@ const KnowledgeDocumentDetail = () => {
             </div>
           ) : (
             <Paragraph type="secondary">暂无 PDF 预览内容</Paragraph>
+          )
+        ) : isDocx ? (
+          docxLoading ? (
+            <div className="detail-content-loading">
+              <Spin tip="加载 Word 文档..." />
+            </div>
+          ) : docxError ? (
+            <Paragraph type="danger">{docxError}</Paragraph>
+          ) : (
+            <div className="docx-preview-wrapper">
+              <div
+                ref={docxContainerRef}
+                className="docx-preview-mount"
+                aria-label="Word 文档预览"
+              />
+            </div>
           )
         ) : contentLoading ? (
           <div className="detail-content-loading">

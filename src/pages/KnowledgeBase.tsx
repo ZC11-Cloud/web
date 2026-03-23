@@ -30,8 +30,8 @@ const { Title, Paragraph } = Typography;
 const { Search } = Input;
 
 /** 知识库支持的扩展名（与后端一致） */
-const ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.md'];
-const ACCEPT = '.pdf,.txt,.md';
+const ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.md', '.docx'];
+const ACCEPT = '.pdf,.txt,.md,.docx';
 
 const KnowledgeBase = () => {
   const navigate = useNavigate();
