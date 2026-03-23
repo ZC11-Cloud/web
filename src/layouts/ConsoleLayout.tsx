@@ -54,9 +54,11 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   );
 
   const modelOptions = [
-    { label: 'Qwen3.5-Plus', value: 'qwen-plus' },
-    { label: 'Qwen3.5-Turbo', value: 'qwen-turbo' },
-    { label: 'Qwen3.5-Max', value: 'qwen-max' },
+    { label: 'Qwen3.5-Plus', value: 'qwen3.5-plus' },
+    { label: 'Qwen3-Max', value: 'qwen3-max' },
+    { label: 'Qwen3.5-Flash', value: 'qwen3.5-flash' },
+    { label: 'Qwen3-VL-Plus', value: 'qwen3-vl-plus' },
+    { label: 'Qwen3-VL-Flash', value: 'qwen3-vl-flash' },
   ];
   const menuItems: MenuItem[] = [
     {
