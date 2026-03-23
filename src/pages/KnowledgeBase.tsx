@@ -9,6 +9,10 @@ import {
   Divider,
   message,
   Upload,
+  Spin,
+  Empty,
+  Alert,
+  Button,
 } from 'antd';
 import type { UploadProps } from 'antd';
 import {
@@ -31,8 +35,18 @@ const ACCEPT = '.pdf,.txt,.md';
 
 const KnowledgeBase = () => {
   const navigate = useNavigate();
-  const { documents, fetchDocuments, uploadDocument, uploadLoading } =
-    useKnowledgeStore();
+  const {
+    documents,
+    fetchDocuments,
+    uploadDocument,
+    uploadLoading,
+    searchQuery,
+    searchResults,
+    searchLoading,
+    searchError,
+    searchDocuments,
+    clearSearch,
+  } = useKnowledgeStore();
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -77,8 +91,12 @@ const KnowledgeBase = () => {
   // ];
 
   const onSearch = (value: string) => {
-    console.log('搜索:', value);
-    // 搜索功能暂不实现
+    const v = value.trim();
+    if (!v) {
+      clearSearch();
+      return;
+    }
+    searchDocuments(v);
   };
 
   const customRequest: UploadProps['customRequest'] = async (options) => {
@@ -119,6 +137,11 @@ const KnowledgeBase = () => {
           enterButton={<SearchOutlined />}
           size="large"
           onSearch={onSearch}
+          onChange={(e) => {
+            if (!e.target.value.trim()) {
+              clearSearch();
+            }
+          }}
           style={{ maxWidth: '600px' }}
         />
       </div>
@@ -169,43 +192,105 @@ const KnowledgeBase = () => {
         </Space>
       </div>
 
-      <div className="knowledge-list">
-        <Title level={4} style={{ margin: '30px 0 20px 0' }}>
-          <FireOutlined /> 推荐知识
-        </Title>
-        <Row gutter={[16, 16]}>
-          {documents.map((item) => (
-            <Col xs={24} sm={12} md={8} key={item.source_id}>
-              <Card
-                hoverable
-                className="knowledge-card"
-                onClick={() => navigate(`/knowledge-base/documents/${encodeURIComponent(item.source_id)}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-header">
-                  {/* <Tag color="blue" style={{ marginBottom: '10px' }}>
-                    {item.category}
-                  </Tag> */}
-                  <Title level={4} style={{ margin: '10px 0' }}>
-                    {item.original_filename.split('.')[0]}
-                  </Title>
-                </div>
-                <Paragraph ellipsis={{ rows: 3 }}>{item.summary}</Paragraph>
-                <div className="card-footer">
-                  <Space wrap style={{ marginBottom: '10px' }}>
-                    {item.tags.map((tag, index) => (
-                      <Tag key={index}>{tag}</Tag>
-                    ))}
-                  </Space>
-                  {/* <div className="view-count">
-                    <span>浏览量: {item.viewCount}</span>
-                  </div> */}
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {searchQuery ? (
+        <div className="knowledge-list">
+          <Title level={4} style={{ margin: '30px 0 20px 0' }}>
+            <SearchOutlined /> 搜索结果（{searchResults.length}）
+          </Title>
+          <Space style={{ marginBottom: 16 }}>
+            <Tag color="processing">关键词：{searchQuery}</Tag>
+            <Button type="link" onClick={clearSearch}>
+              清空搜索
+            </Button>
+          </Space>
+          {searchError && (
+            <Alert
+              type="error"
+              showIcon
+              message={searchError}
+              style={{ marginBottom: 16 }}
+            />
+          )}
+          {searchLoading ? (
+            <div className="search-loading">
+              <Spin tip="正在搜索..." />
+            </div>
+          ) : searchResults.length === 0 ? (
+            <Empty description="未找到相关内容" />
+          ) : (
+            <Row gutter={[16, 16]}>
+              {searchResults.map((item, index) => (
+                <Col xs={24} key={`${item.source_id}_${index}`}>
+                  <Card
+                    hoverable
+                    className="knowledge-card"
+                    onClick={() =>
+                      navigate(
+                        `/knowledge-base/documents/${encodeURIComponent(item.source_id)}`
+                      )
+                    }
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="card-header">
+                      <Title level={5} style={{ margin: '10px 0' }}>
+                        {item.original_filename}
+                      </Title>
+                      {item.score !== null && (
+                        <Tag color="blue">相似度分值: {item.score.toFixed(4)}</Tag>
+                      )}
+                    </div>
+                    <Paragraph className="search-hit-content" ellipsis={{ rows: 4 }}>
+                      {item.content}
+                    </Paragraph>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </div>
+      ) : (
+        <div className="knowledge-list">
+          <Title level={4} style={{ margin: '30px 0 20px 0' }}>
+            <FireOutlined /> 推荐知识
+          </Title>
+          <Row gutter={[16, 16]}>
+            {documents.map((item) => (
+              <Col xs={24} sm={12} md={8} key={item.source_id}>
+                <Card
+                  hoverable
+                  className="knowledge-card"
+                  onClick={() =>
+                    navigate(
+                      `/knowledge-base/documents/${encodeURIComponent(item.source_id)}`
+                    )
+                  }
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-header">
+                    {/* <Tag color="blue" style={{ marginBottom: '10px' }}>
+                      {item.category}
+                    </Tag> */}
+                    <Title level={4} style={{ margin: '10px 0' }}>
+                      {item.original_filename.split('.')[0]}
+                    </Title>
+                  </div>
+                  <Paragraph ellipsis={{ rows: 3 }}>{item.summary}</Paragraph>
+                  <div className="card-footer">
+                    <Space wrap style={{ marginBottom: '10px' }}>
+                      {item.tags.map((tag, index) => (
+                        <Tag key={index}>{tag}</Tag>
+                      ))}
+                    </Space>
+                    {/* <div className="view-count">
+                      <span>浏览量: {item.viewCount}</span>
+                    </div> */}
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      )}
     </div>
   );
 };

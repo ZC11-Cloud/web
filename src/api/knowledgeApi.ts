@@ -46,6 +46,21 @@ export interface KnowledgeDocumentContentResponse {
   file_ext: string;
 }
 
+/** 搜索命中项 */
+export interface KnowledgeSearchHit {
+  source_id: string;
+  original_filename: string;
+  content: string;
+  score: number | null;
+}
+
+/** 搜索响应 */
+export interface KnowledgeSearchResponse {
+  query: string;
+  total: number;
+  hits: KnowledgeSearchHit[];
+}
+
 const knowledgeApi = {
   /** 上传文档 */
   uploadDocument: (file: File): Promise<KnowledgeUploadResponse> => {
@@ -82,6 +97,16 @@ const knowledgeApi = {
     return axiosInstance.get(
       `/knowledge/documents/${encodeURIComponent(sourceId)}/content`
     );
+  },
+
+  /** 搜索知识库 */
+  searchDocuments: (
+    q: string,
+    top_k = 10
+  ): Promise<KnowledgeSearchResponse> => {
+    return axiosInstance.get('/knowledge/search', {
+      params: { q, top_k },
+    });
   },
 
   /** 删除文档 */

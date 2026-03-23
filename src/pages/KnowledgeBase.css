@@ -27,3 +27,15 @@
   color: #999;
   font-size: 12px;
 }
+
+.search-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+}
+
+.search-hit-content {
+  margin-top: 8px;
+  white-space: pre-wrap;
+}

@@ -3,6 +3,7 @@ import knowledgeApi from '../api/knowledgeApi';
 import type {
   KnowledgeDocumentItem,
   KnowledgeDocumentsParams,
+  KnowledgeSearchHit,
 } from '../api/knowledgeApi';
 
 interface KnowledgeStore {
@@ -20,11 +21,17 @@ interface KnowledgeStore {
   documentContent: string | null;
   contentLoading: boolean;
   contentError: string | null;
+  searchQuery: string;
+  searchResults: KnowledgeSearchHit[];
+  searchLoading: boolean;
+  searchError: string | null;
   uploadLoading: boolean;
 
   fetchDocuments: (params?: Partial<KnowledgeDocumentsParams>) => Promise<void>;
   fetchDocument: (sourceId: string) => Promise<void>;
   fetchDocumentContent: (sourceId: string) => Promise<void>;
+  searchDocuments: (q: string, topK?: number) => Promise<void>;
+  clearSearch: () => void;
   uploadDocument: (file: File) => Promise<void>;
   deleteDocument: (sourceId: string) => Promise<void>;
 
@@ -47,6 +54,10 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
   documentContent: null,
   contentLoading: false,
   contentError: null,
+  searchQuery: '',
+  searchResults: [],
+  searchLoading: false,
+  searchError: null,
   uploadLoading: false,
 
   fetchDocuments: async (params = {}) => {
@@ -97,6 +108,44 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
       });
     }
   },
+
+  searchDocuments: async (q: string, topK = 10) => {
+    const query = q.trim();
+    if (!query) {
+      set({
+        searchQuery: '',
+        searchResults: [],
+        searchLoading: false,
+        searchError: null,
+      });
+      return;
+    }
+    set({
+      searchQuery: query,
+      searchLoading: true,
+      searchError: null,
+    });
+    try {
+      const res = await knowledgeApi.searchDocuments(query, topK);
+      set({
+        searchResults: res.hits,
+        searchLoading: false,
+      });
+    } catch (err) {
+      set({
+        searchError: err instanceof Error ? err.message : '搜索失败',
+        searchLoading: false,
+      });
+    }
+  },
+
+  clearSearch: () =>
+    set({
+      searchQuery: '',
+      searchResults: [],
+      searchLoading: false,
+      searchError: null,
+    }),
 
   uploadDocument: async (file: File) => {
     set({ uploadLoading: true, error: null });
