@@ -109,6 +109,16 @@ const knowledgeApi = {
     });
   },
 
+  /** 下载文档原文件（可用于 PDF 预览） */
+  downloadDocument: (sourceId: string): Promise<Blob> => {
+    return axiosInstance.get(
+      `/knowledge/documents/${encodeURIComponent(sourceId)}/download`,
+      {
+        responseType: 'blob',
+      }
+    );
+  },
+
   /** 删除文档 */
   deleteDocument: (sourceId: string): Promise<KnowledgeDeleteResponse> => {
     return axiosInstance.delete(`/knowledge/documents/${encodeURIComponent(sourceId)}`);

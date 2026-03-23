@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Typography, Spin, Button, Tag, Space, message } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
+import knowledgeApi from '../api/knowledgeApi';
 import './KnowledgeDocumentDetail.css';
 
 const { Title, Paragraph } = Typography;
@@ -22,6 +23,9 @@ const KnowledgeDocumentDetail = () => {
     fetchDocumentContent,
     clearCurrentDocument,
   } = useKnowledgeStore();
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     if (sourceId) {
@@ -31,10 +35,44 @@ const KnowledgeDocumentDetail = () => {
   }, [sourceId, fetchDocument, clearCurrentDocument]);
 
   useEffect(() => {
-    if (sourceId && currentDocument) {
+    const loadDocumentBody = async () => {
+      if (!sourceId || !currentDocument) return;
+      const isPdf = currentDocument.original_filename.toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        setPdfLoading(true);
+        setPdfError(null);
+        if (pdfBlobUrl) {
+          URL.revokeObjectURL(pdfBlobUrl);
+          setPdfBlobUrl(null);
+        }
+        try {
+          const blob = await knowledgeApi.downloadDocument(sourceId);
+          const url = URL.createObjectURL(blob);
+          setPdfBlobUrl(url);
+        } catch (err) {
+          setPdfError(err instanceof Error ? err.message : 'PDF 预览加载失败');
+        } finally {
+          setPdfLoading(false);
+        }
+        return;
+      }
+      setPdfError(null);
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+        setPdfBlobUrl(null);
+      }
       fetchDocumentContent(sourceId);
     }
+    loadDocumentBody();
   }, [sourceId, currentDocument, fetchDocumentContent]);
+
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+  }, [pdfBlobUrl]);
 
   if (!sourceId) {
     message.error('缺少文档标识');
@@ -73,6 +111,7 @@ const KnowledgeDocumentDetail = () => {
 
   const isMarkdown =
     currentDocument.original_filename.toLowerCase().endsWith('.md');
+  const isPdf = currentDocument.original_filename.toLowerCase().endsWith('.pdf');
 
   return (
     <div className="knowledge-document-detail">
@@ -91,7 +130,25 @@ const KnowledgeDocumentDetail = () => {
             <Tag key={index}>{tag}</Tag>
           ))}
         </Space>
-        {contentLoading ? (
+        {isPdf ? (
+          pdfLoading ? (
+            <div className="detail-content-loading">
+              <Spin tip="加载 PDF 预览..." />
+            </div>
+          ) : pdfError ? (
+            <Paragraph type="danger">{pdfError}</Paragraph>
+          ) : pdfBlobUrl ? (
+            <div className="pdf-preview-wrapper">
+              <iframe
+                className="pdf-preview-frame"
+                src={pdfBlobUrl}
+                title={currentDocument.original_filename}
+              />
+            </div>
+          ) : (
+            <Paragraph type="secondary">暂无 PDF 预览内容</Paragraph>
+          )
+        ) : contentLoading ? (
           <div className="detail-content-loading">
             <Spin tip="加载正文..." />
           </div>
