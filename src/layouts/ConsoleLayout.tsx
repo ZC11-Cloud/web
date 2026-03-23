@@ -54,6 +54,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   );
 
   const modelOptions = [
+    { label: 'Qwen-Plus', value: 'qwen-plus' },
     { label: 'Qwen3.5-Plus', value: 'qwen3.5-plus' },
     { label: 'Qwen3-Max', value: 'qwen3-max' },
     { label: 'Qwen3.5-Flash', value: 'qwen3.5-flash' },

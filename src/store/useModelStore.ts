@@ -6,7 +6,7 @@ interface ModelStore {
   setCurrentModel: (model: string) => void;
 }
 
-export const DEFAULT_MODEL_NAME = 'qwen3.5-plus';
+export const DEFAULT_MODEL_NAME = 'qwen-plus';
 
 export const useModelStore = create<ModelStore>((set) => ({
   currentModel: DEFAULT_MODEL_NAME,
