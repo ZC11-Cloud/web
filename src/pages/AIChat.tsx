@@ -194,13 +194,6 @@ const AIChat = () => {
     },
   ];
 
-  const SwitchTextStyle = {
-    display: 'inline-flex',
-    width: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  };
-
   const senderHeader = (
     <Sender.Header
       title="附件"
@@ -390,38 +383,24 @@ const AIChat = () => {
                     <SenderSwitch
                       value={useDeepSearch}
                       icon={<OpenAIOutlined />}
-                      checkedChildren={
-                        <>
-                          深度搜索：<span style={SwitchTextStyle}>开启</span>
-                        </>
-                      }
-                      unCheckedChildren={
-                        <>
-                          深度搜索：<span style={SwitchTextStyle}>关闭</span>
-                        </>
-                      }
+                      checkedChildren="深度思考"
+                      unCheckedChildren="深度思考"
                       onChange={(checked: boolean) => setUseDeepSearch(checked)}
                     />
                     <SenderSwitch
                       value={useRag}
                       icon={<BookOutlined />}
-                      checkedChildren={
-                        <>
-                          知识库：<span style={SwitchTextStyle}>开启</span>
-                        </>
-                      }
-                      unCheckedChildren={
-                        <>
-                          知识库：<span style={SwitchTextStyle}>关闭</span>
-                        </>
-                      }
+                      checkedChildren="知识库"
+                      unCheckedChildren="知识库"
                       onChange={(checked: boolean) => setUseRag(checked)}
                     />
-                    {useImage && (
-                      <span style={{ color: '#1890ff', fontSize: 12 }}>
-                        <PictureOutlined /> 已附加图片，发送时将启用图像识别
-                      </span>
-                    )}
+                    <SenderSwitch
+                      value={useImage}
+                      icon={<PictureOutlined />}
+                      checkedChildren="图像识别"
+                      unCheckedChildren="图像识别"
+                      onChange={(checked: boolean) => setUseImage(checked)}
+                    />
                   </Flex>
                 </Flex>
               );

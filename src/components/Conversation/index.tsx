@@ -27,6 +27,8 @@ const Conversation = () => {
   } = useConversationStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const isChatRoute =
+    location.pathname === '/ai-chat' || location.pathname === '/';
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -118,7 +120,7 @@ const Conversation = () => {
         //   label: '新建对话',
         //   onClick: newChatClick,
         // }}
-        activeKey={currentConversationId?.toString()}
+        activeKey={isChatRoute ? currentConversationId?.toString() : undefined}
         menu={menuConfig}
         items={items}
         onActiveChange={(value: string) => {
