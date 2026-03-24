@@ -18,6 +18,7 @@ import {
 import { XMarkdown } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
+import { useNavigate } from 'react-router-dom';
 import './AIChat.css';
 import { useConversationStore } from '../store/useConversationStore';
 import qaApi from '../api/qaApi';
@@ -27,8 +28,12 @@ import ThoughtChainPanel from '../components/ThoughtChainPanel';
 
 // 知识库引用上标组件：有 citations 时用 Sources 渲染可溯源链接，否则退化为普通 sup
 const SupCitation = React.memo(
-  (props: { children?: React.ReactNode; citations?: KnowledgeCitation[] | null }) => {
-    const { children, citations } = props;
+  (props: {
+    children?: React.ReactNode;
+    citations?: KnowledgeCitation[] | null;
+    onSourceClick?: (sourceId: string) => void;
+  }) => {
+    const { children, citations, onSourceClick } = props;
     const key = parseInt(`${children}` || '0', 10);
     if (!citations?.length) {
       return <sup>{children}</sup>;
@@ -36,7 +41,6 @@ const SupCitation = React.memo(
     const items = citations.map((c) => ({
       key: c.key,
       title: `${c.key}. ${c.filename}`,
-      url: `/knowledge-base/documents/${c.source_id}`,
       description: c.snippet,
     }));
     return (
@@ -45,6 +49,12 @@ const SupCitation = React.memo(
         title={children}
         items={items}
         inline={true}
+        onClick={(item) => {
+          const hit = citations.find((c) => c.key === Number(item.key));
+          if (hit?.source_id) {
+            onSourceClick?.(hit.source_id);
+          }
+        }}
       />
     );
   }
@@ -65,6 +75,7 @@ const markdownLoadingComponents = {
 };
 
 const AIChat = () => {
+  const navigate = useNavigate();
   // 使用状态管理
   const {
     messages,
@@ -300,6 +311,11 @@ const AIChat = () => {
                               <SupCitation
                                 {...p}
                                 citations={msg.citations}
+                                onSourceClick={(sourceId) =>
+                                  navigate(
+                                    `/knowledge-base/documents/${encodeURIComponent(sourceId)}`
+                                  )
+                                }
                               />
                             ),
                           }
