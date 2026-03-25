@@ -34,7 +34,8 @@ interface ConversationStore {
   // 消息相关操作
   fetchMessages: (
     conversationId: number,
-    params?: Omit<MessagesParams, 'conversation_id'>
+    params?: Omit<MessagesParams, 'conversation_id'>,
+    options?: { silent?: boolean }
   ) => Promise<void>;
   sendMessage: (
     conversationId: number,
@@ -110,8 +111,17 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   // 获取消息列表
-  fetchMessages: async (conversationId, params = { skip: 0, limit: 50 }) => {
-    set({ messagesLoading: true, messagesError: null });
+  fetchMessages: async (
+    conversationId,
+    params = { skip: 0, limit: 50 },
+    options = {}
+  ) => {
+    const { silent = false } = options;
+    if (!silent) {
+      set({ messagesLoading: true, messagesError: null });
+    } else {
+      set({ messagesError: null });
+    }
 
     try {
       const response = await qaApi.getMessages({
@@ -119,17 +129,17 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         ...params,
       });
 
-      set({
+      set((state) => ({
         messages: response.messages,
         messagesTotal: response.total,
-        messagesLoading: false,
-      });
+        messagesLoading: silent ? state.messagesLoading : false,
+      }));
     } catch (error) {
-      set({
+      set((state) => ({
         messagesError:
           error instanceof Error ? error.message : '获取消息列表失败',
-        messagesLoading: false,
-      });
+        messagesLoading: silent ? state.messagesLoading : false,
+      }));
     }
   },
 
@@ -160,9 +170,24 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         onChunk: (chunk) => {
           set((state) => ({ streamingContent: state.streamingContent + chunk }));
         },
-        onDone: async () => {
-          set({ isStreaming: false, streamingContent: '' });
-          await get().fetchMessages(conversationId);
+        onDone: async (citations) => {
+          // 先将流式内容落到消息列表，避免流结束到拉取历史之间出现“消息消失”空窗
+          set((state) => ({
+            messages: [
+              ...state.messages,
+              {
+                id: -Date.now(),
+                conversation_id: conversationId,
+                content: state.streamingContent || '',
+                role: 'assistant',
+                create_time: new Date().toISOString(),
+                citations: citations ?? undefined,
+              },
+            ],
+            isStreaming: false,
+            streamingContent: '',
+          }));
+          await get().fetchMessages(conversationId, undefined, { silent: true });
           const { messages, conversations } = get();
           const conv = conversations.find((c) => c.id === conversationId);
           if (

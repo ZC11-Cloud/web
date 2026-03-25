@@ -105,9 +105,11 @@ const AIChat = () => {
   const { theme: antdTheme } = theme.useToken();
 
   // 从附件列表中取第一张图片转为 base64，并自动开启图像识别
-  const syncImageFromAttachments = (fileList: GetProp<AttachmentsProps, 'items'>) => {
-    const imageItem = fileList?.find(
-      (f) => (f.originFileObj as File | undefined)?.type?.startsWith?.('image/')
+  const syncImageFromAttachments = (
+    fileList: GetProp<AttachmentsProps, 'items'>
+  ) => {
+    const imageItem = fileList?.find((f) =>
+      (f.originFileObj as File | undefined)?.type?.startsWith?.('image/')
     );
     const file = imageItem?.originFileObj as File | undefined;
     if (!file) {
@@ -185,12 +187,15 @@ const AIChat = () => {
 
   const formattedMessages = formatMessages();
 
-  const lastAiIndex = formattedMessages.reduce<number>((lastIndex, msg, index) => {
-    if (msg.sender === 'ai' && msg.id !== 0 && msg.id !== -1) {
-      return index;
-    }
-    return lastIndex;
-  }, -1);
+  const lastAiIndex = formattedMessages.reduce<number>(
+    (lastIndex, msg, index) => {
+      if (msg.sender === 'ai' && msg.id !== 0 && msg.id !== -1) {
+        return index;
+      }
+      return lastIndex;
+    },
+    -1
+  );
 
   const actionItems = [
     {
