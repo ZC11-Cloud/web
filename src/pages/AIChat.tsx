@@ -337,6 +337,7 @@ const AIChat = () => {
           <Sender
             ref={senderRef}
             header={senderHeader}
+            loading={isStreaming}
             prefix={
               <Button
                 type="text"
@@ -389,6 +390,9 @@ const AIChat = () => {
                   : '未传',
               });
               await sendMessage(conversationId, text, opts);
+            }}
+            onCancel={() => {
+              console.log('onCancel');
             }}
             disabled={false}
             placeholder={
