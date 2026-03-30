@@ -22,6 +22,7 @@ interface ConversationStore {
   streamingContent: string;
   /** 是否处于流式输出中 */
   isStreaming: boolean;
+  streamController: AbortController | null; // 流式发送的控制器
   // Actions
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
   setCurrentConversation: (
@@ -48,9 +49,40 @@ interface ConversationStore {
     }
   ) => Promise<void>;
   clearMessagesError: () => void;
+  cancelStreaming: () => Promise<void>; // 取消流式发送
+  tryGenerateConversationTitle: (conversationId: number) => Promise<void>;
 }
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
+  // 首轮问答（两条消息）时自动生成标题；中断流式后后端落库有延迟，做少量重试
+  tryGenerateConversationTitle: async (conversationId: number) => {
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, ms);
+      });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await get().fetchMessages(conversationId, undefined, { silent: true });
+        const { messages, conversations } = get();
+        const conv = conversations.find((c) => c.id === conversationId);
+        if (
+          messages.length === 2 &&
+          (conv?.title === '新对话' || conv?.title?.trim() === '新对话')
+        ) {
+          await qaApi.generateConversationTitle(conversationId);
+          await get().fetchConversations();
+        }
+        return;
+      } catch {
+        if (attempt < 2) {
+          await sleep(300);
+          continue;
+        }
+        return;
+      }
+    }
+  },
   conversations: [],
   currentConversationId: null,
   loading: false,
@@ -63,6 +95,39 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   messagesTotal: 0,
   streamingContent: '',
   isStreaming: false,
+  streamController: null,
+
+  cancelStreaming: async () => {
+    const { streamController, currentConversationId, streamingContent } = get();
+    const hasTruncatedContent = Boolean(streamingContent.trim());
+
+    const truncatedMessage =
+      hasTruncatedContent && currentConversationId
+        ? {
+            id: -Date.now(),
+            conversation_id: currentConversationId,
+            content: streamingContent,
+            role: 'assistant' as const,
+            create_time: new Date().toISOString(),
+            citations: undefined,
+          }
+        : null;
+
+    const controller = streamController;
+    if (controller) controller.abort();
+    set((state) => ({
+      messages: truncatedMessage
+        ? [...state.messages, truncatedMessage]
+        : state.messages,
+      isStreaming: false,
+      streamingContent: '',
+      streamController: null,
+    }));
+
+    if (currentConversationId && hasTruncatedContent) {
+      await get().tryGenerateConversationTitle(currentConversationId);
+    }
+  },
 
   fetchConversations: async (params = { skip: 0, limit: 20 }) => {
     set({ loading: true, error: null });
@@ -153,12 +218,13 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       role: 'user',
       create_time: new Date().toISOString(),
     };
-
+    const controller = new AbortController();
     set((state) => ({
       messages: [...state.messages, tempUserMessage],
       isStreaming: true,
       streamingContent: '',
       messagesError: null,
+      streamController: controller,
     }));
 
     try {
@@ -168,7 +234,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         image_base64,
         model_name,
         onChunk: (chunk) => {
-          set((state) => ({ streamingContent: state.streamingContent + chunk }));
+          set((state) => ({
+            streamingContent: state.streamingContent + chunk,
+          }));
         },
         onDone: async (citations) => {
           // 先将流式内容落到消息列表，避免流结束到拉取历史之间出现“消息消失”空窗
@@ -186,35 +254,32 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
             ],
             isStreaming: false,
             streamingContent: '',
+            streamController: null,
           }));
-          await get().fetchMessages(conversationId, undefined, { silent: true });
-          const { messages, conversations } = get();
-          const conv = conversations.find((c) => c.id === conversationId);
-          if (
-            messages.length === 2 &&
-            (conv?.title === '新对话' || conv?.title?.trim() === '新对话')
-          ) {
-            try {
-              await qaApi.generateConversationTitle(conversationId);
-              await get().fetchConversations();
-            } catch {
-              // 生成失败时静默忽略，保持「新对话」
-            }
-          }
+          await get().tryGenerateConversationTitle(conversationId);
         },
         onError: (detail) => {
           set({
             isStreaming: false,
             streamingContent: '',
             messagesError: detail,
+            streamController: null,
           });
         },
+        signal: controller.signal,
       });
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.log('流式发送被取消');
+        set({isStreaming: false, streamController: null});
+        return;
+      }
+      // 非中断错误
       set((state) => ({
         messages: state.messages.filter((msg) => msg.id !== tempUserMessage.id),
         isStreaming: false,
         streamingContent: '',
+        streamController: null,
         messagesError: error instanceof Error ? error.message : '发送消息失败',
       }));
     }

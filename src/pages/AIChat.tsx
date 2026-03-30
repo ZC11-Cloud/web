@@ -24,7 +24,6 @@ import { useConversationStore } from '../store/useConversationStore';
 import qaApi from '../api/qaApi';
 import type { Message as ApiMessage, KnowledgeCitation } from '../api/qaApi';
 import { useModelStore } from '../store/useModelStore';
-import ThoughtChainPanel from '../components/ThoughtChainPanel';
 
 // 知识库引用上标组件：有 citations 时用 Sources 渲染可溯源链接，否则退化为普通 sup
 const SupCitation = React.memo(
@@ -88,6 +87,7 @@ const AIChat = () => {
     isStreaming,
     fetchConversations,
     setCurrentConversation,
+    cancelStreaming,
   } = useConversationStore();
   const { currentModel } = useModelStore();
 
@@ -187,16 +187,6 @@ const AIChat = () => {
 
   const formattedMessages = formatMessages();
 
-  const lastAiIndex = formattedMessages.reduce<number>(
-    (lastIndex, msg, index) => {
-      if (msg.sender === 'ai' && msg.id !== 0 && msg.id !== -1) {
-        return index;
-      }
-      return lastIndex;
-    },
-    -1
-  );
-
   const actionItems = [
     {
       key: 'retry',
@@ -250,7 +240,7 @@ const AIChat = () => {
               minHeight: 0,
               padding: '16px',
             }}
-            items={formattedMessages.map((msg, index) => ({
+            items={formattedMessages.map((msg) => ({
               key: String(msg.id),
               role: msg.sender,
               content: msg.content,
@@ -268,10 +258,6 @@ const AIChat = () => {
               loading: msg.sender === 'ai' && messagesLoading && msg.id !== -1,
               contentRender: (content: string) => (
                 <>
-                  {/* {currentConversationId &&
-                    index === lastAiIndex && (
-                      <ThoughtChainPanel className="thought-chain-wrapper" />
-                    )} */}
                   {msg.sender === 'user' && msg.image_url && (
                     <img
                       src={
@@ -392,7 +378,7 @@ const AIChat = () => {
               await sendMessage(conversationId, text, opts);
             }}
             onCancel={() => {
-              console.log('onCancel');
+              cancelStreaming();
             }}
             disabled={false}
             placeholder={
