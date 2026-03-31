@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Avatar, message, Flex, Skeleton, theme, Button } from 'antd';
+import { Avatar, message, Flex, Skeleton, theme, Button, Modal } from 'antd';
 import { Actions, Bubble, Attachments, Sender, Sources } from '@ant-design/x';
-import type { AttachmentsProps } from '@ant-design/x';
+import type {
+  AttachmentsProps,
+  ActionsFeedbackProps,
+  ActionsItemProps,
+} from '@ant-design/x';
 import type { GetProp, GetRef } from 'antd';
 
 const SenderSwitch = Sender.Switch;
 import {
   UserOutlined,
-  CopyOutlined,
-  RedoOutlined,
   BookOutlined,
   PictureOutlined,
   PaperClipOutlined,
   OpenAIOutlined,
   CloudUploadOutlined,
+  CheckOutlined,
+  ShareAltOutlined,
+  EditOutlined,
+  RedoOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { XMarkdown } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/themes/light.css';
@@ -103,6 +110,12 @@ const AIChat = () => {
   const attachmentsRef = useRef<GetRef<typeof Attachments>>(null);
   const senderRef = useRef<GetRef<typeof Sender>>(null);
   const { theme: antdTheme } = theme.useToken();
+  const [feedbackStatus, setFeedbackStatus] =
+    useState<ActionsFeedbackProps['value']>('default');
+  const [audioStatus, setAudioStatus] =
+    useState<ActionsItemProps['status']>('default');
+  const [shareStatus, setShareStatus] =
+    useState<ActionsItemProps['status']>('default');
 
   // 从附件列表中取第一张图片转为 base64，并自动开启图像识别
   const syncImageFromAttachments = (
@@ -187,16 +200,114 @@ const AIChat = () => {
 
   const formattedMessages = formatMessages();
 
-  const actionItems = [
+  const fillSenderInput = (content: string) => {
+    setInputValue(content);
+    setTimeout(() => {
+      const root = senderRef.current?.nativeElement;
+      const inputEl = root?.querySelector('textarea, input');
+      if (inputEl instanceof HTMLElement) {
+        inputEl.focus();
+      }
+    }, 0);
+  };
+
+  const createUserActionItems = (content: string) => [
+    {
+      key: 'copy',
+      label: '复制',
+      actionRender: () => <Actions.Copy text={content} />,
+    },
+    {
+      key: 'edit',
+      icon: <EditOutlined />,
+      label: '编辑',
+      onItemClick: () => fillSenderInput(content),
+    },
+  ];
+
+  const createAiActionItems = (content: string) => [
     {
       key: 'retry',
+      label: '重试',
       icon: <RedoOutlined />,
-      label: 'Retry',
+    },
+    {
+      key: 'edit',
+      icon: <EditOutlined />,
+      label: '编辑',
+    },
+    {
+      key: 'feedback',
+      actionRender: () => (
+        <Actions.Feedback
+          value={feedbackStatus}
+          styles={{
+            liked: {
+              color: '#f759ab',
+            },
+          }}
+          onChange={(val) => {
+            setFeedbackStatus(val);
+            message.success(`反馈已更新为：${val}`);
+          }}
+          key="feedback"
+        />
+      ),
     },
     {
       key: 'copy',
-      icon: <CopyOutlined />,
-      label: 'Copy',
+      label: '复制',
+      actionRender: () => <Actions.Copy text={content} />,
+    },
+    {
+      key: 'audio',
+      label: '语音',
+      actionRender: () => {
+        return (
+          <Actions.Audio
+            onClick={() => setAudioStatus('running')}
+            status={audioStatus}
+          />
+        );
+      },
+    },
+    {
+      key: 'share',
+      label: '分享',
+      actionRender: () => {
+        return (
+          <Actions.Item
+            onClick={() => setShareStatus('running')}
+            label={shareStatus}
+            status={shareStatus}
+            defaultIcon={<ShareAltOutlined />}
+            runningIcon={<CheckOutlined />}
+          />
+        );
+      },
+    },
+    {
+      key: 'more',
+      subItems: [
+        {
+          key: 'delete',
+          label: '删除',
+          icon: <DeleteOutlined />,
+          onItemClick: () => {
+            Modal.confirm({
+              title: '确认删除吗？',
+              content: '删除后将无法恢复。',
+              onOk() {
+                message.success('删除成功');
+              },
+              onCancel() {
+                message.info('已取消');
+              },
+            });
+          },
+          danger: true,
+        },
+      ],
     },
   ];
 
@@ -247,14 +358,17 @@ const AIChat = () => {
               placement: msg.sender === 'user' ? 'end' : 'start',
               footerPlacement:
                 msg.sender === 'user' ? 'outer-end' : 'outer-start',
-              header: msg.sender === 'user' ? 'User' : 'AquaMind',
+              header: msg.sender === 'user' ? '用户' : 'AquaMind',
               avatar: <Avatar icon={<UserOutlined />} />,
-              footer: (content) => (
-                <Actions
-                  items={actionItems}
-                  onClick={() => console.log(content)}
-                />
-              ),
+              footer: (content) => {
+                const actionText =
+                  typeof content === 'string' ? content : msg.content;
+                const items =
+                  msg.sender === 'user'
+                    ? createUserActionItems(actionText)
+                    : createAiActionItems(actionText);
+                return <Actions items={items} />;
+              },
               loading: msg.sender === 'ai' && messagesLoading && msg.id !== -1,
               contentRender: (content: string) => (
                 <>
