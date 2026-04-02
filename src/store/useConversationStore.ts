@@ -20,6 +20,8 @@ interface ConversationStore {
   messagesTotal: number;
   /** 当前正在流式接收的 AI 回复内容 */
   streamingContent: string;
+  /** 当前正在流式接收的 AI 思考内容 */
+  streamingReasoningContent: string;
   /** 是否处于流式输出中 */
   isStreaming: boolean;
   streamController: AbortController | null; // 流式发送的控制器
@@ -46,6 +48,9 @@ interface ConversationStore {
       use_image?: boolean;
       image_base64?: string | null;
       model_name?: string;
+      enable_thinking?: boolean;
+      thinking_budget?: number;
+      preserve_thinking?: boolean;
     }
   ) => Promise<void>;
   clearMessagesError: () => void;
@@ -94,11 +99,17 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   messagesError: null,
   messagesTotal: 0,
   streamingContent: '',
+  streamingReasoningContent: '',
   isStreaming: false,
   streamController: null,
 
   cancelStreaming: async () => {
-    const { streamController, currentConversationId, streamingContent } = get();
+    const {
+      streamController,
+      currentConversationId,
+      streamingContent,
+      streamingReasoningContent,
+    } = get();
     const hasTruncatedContent = Boolean(streamingContent.trim());
 
     const truncatedMessage =
@@ -110,6 +121,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
             role: 'assistant' as const,
             create_time: new Date().toISOString(),
             citations: undefined,
+            reasoning_content: streamingReasoningContent || undefined,
           }
         : null;
 
@@ -121,6 +133,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         : state.messages,
       isStreaming: false,
       streamingContent: '',
+      streamingReasoningContent: '',
       streamController: null,
     }));
 
@@ -210,7 +223,15 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   // 发送消息（流式输出）
   sendMessage: async (conversationId, content, options = {}) => {
-    const { use_rag, use_image, image_base64, model_name } = options;
+    const {
+      use_rag,
+      use_image,
+      image_base64,
+      model_name,
+      enable_thinking,
+      thinking_budget,
+      preserve_thinking,
+    } = options;
     const tempUserMessage: Message = {
       id: Date.now(),
       conversation_id: conversationId,
@@ -223,6 +244,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       messages: [...state.messages, tempUserMessage],
       isStreaming: true,
       streamingContent: '',
+      streamingReasoningContent: '',
       messagesError: null,
       streamController: controller,
     }));
@@ -233,9 +255,18 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         use_image,
         image_base64,
         model_name,
+        enable_thinking,
+        thinking_budget,
+        preserve_thinking,
         onChunk: (chunk) => {
           set((state) => ({
             streamingContent: state.streamingContent + chunk,
+          }));
+        },
+        onReasoningChunk: (reasoningChunk) => {
+          set((state) => ({
+            streamingReasoningContent:
+              state.streamingReasoningContent + reasoningChunk,
           }));
         },
         onDone: async (citations) => {
@@ -250,10 +281,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
                 role: 'assistant',
                 create_time: new Date().toISOString(),
                 citations: citations ?? undefined,
+                reasoning_content: state.streamingReasoningContent || undefined,
               },
             ],
             isStreaming: false,
             streamingContent: '',
+            streamingReasoningContent: '',
             streamController: null,
           }));
           await get().tryGenerateConversationTitle(conversationId);
@@ -262,6 +295,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
           set({
             isStreaming: false,
             streamingContent: '',
+            streamingReasoningContent: '',
             messagesError: detail,
             streamController: null,
           });
@@ -271,7 +305,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         console.log('流式发送被取消');
-        set({isStreaming: false, streamController: null});
+        set({
+          isStreaming: false,
+          streamingContent: '',
+          streamingReasoningContent: '',
+          streamController: null,
+        });
         return;
       }
       // 非中断错误
@@ -279,6 +318,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         messages: state.messages.filter((msg) => msg.id !== tempUserMessage.id),
         isStreaming: false,
         streamingContent: '',
+        streamingReasoningContent: '',
         streamController: null,
         messagesError: error instanceof Error ? error.message : '发送消息失败',
       }));

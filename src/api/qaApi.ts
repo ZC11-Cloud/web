@@ -45,6 +45,8 @@ export interface Message {
   image_url?: string | null;
   /** AI 回复引用的知识库来源，供 Sources 上标溯源 */
   citations?: KnowledgeCitation[] | null;
+  /** AI 思考过程（深度思考模型可选） */
+  reasoning_content?: string | null;
 }
 
 // 获取消息列表参数接口
@@ -69,10 +71,16 @@ export interface SendMessageRequest {
   image_base64?: string | null;
   /** 可选：指定后端使用的模型名称 */
   model_name?: string;
+  /** 是否启用深度思考 */
+  enable_thinking?: boolean;
+  /** 思考预算（最大推理 Token） */
+  thinking_budget?: number;
+  /** 是否传递历史思考过程 */
+  preserve_thinking?: boolean;
 }
 
 // 流式消息 SSE 事件类型
-export type StreamEventType = 'chunk' | 'done' | 'error';
+export type StreamEventType = 'chunk' | 'reasoning_chunk' | 'done' | 'error';
 
 export interface StreamEventChunk {
   type: 'chunk';
@@ -84,12 +92,21 @@ export interface StreamEventDone {
   citations?: KnowledgeCitation[];
 }
 
+export interface StreamEventReasoningChunk {
+  type: 'reasoning_chunk';
+  content: string;
+}
+
 export interface StreamEventError {
   type: 'error';
   detail: string;
 }
 
-export type StreamEvent = StreamEventChunk | StreamEventDone | StreamEventError;
+export type StreamEvent =
+  | StreamEventChunk
+  | StreamEventReasoningChunk
+  | StreamEventDone
+  | StreamEventError;
 
 // 流式发送消息的选项
 export interface SendMessageStreamOptions {
@@ -98,7 +115,14 @@ export interface SendMessageStreamOptions {
   image_base64?: string | null;
   /** 可选：指定后端使用的模型名称 */
   model_name?: string;
+  /** 是否启用深度思考 */
+  enable_thinking?: boolean;
+  /** 思考预算（最大推理 Token） */
+  thinking_budget?: number;
+  /** 是否传递历史思考过程 */
+  preserve_thinking?: boolean;
   onChunk: (content: string) => void;
+  onReasoningChunk?: (content: string) => void;
   onDone?: (citations?: KnowledgeCitation[]) => void;
   onError?: (detail: string) => void;
   signal?: AbortSignal;
@@ -154,6 +178,9 @@ const qaApi = {
         use_image: data.use_image,
         image_base64: data.image_base64 ?? undefined,
         model_name: data.model_name,
+        enable_thinking: data.enable_thinking,
+        thinking_budget: data.thinking_budget,
+        preserve_thinking: data.preserve_thinking,
       }
     );
   },
@@ -194,6 +221,9 @@ const qaApi = {
           use_image: use_image ?? false,
           image_base64: image_base64 ?? undefined,
           model_name,
+          enable_thinking: options.enable_thinking,
+          thinking_budget: options.thinking_budget,
+          preserve_thinking: options.preserve_thinking,
         };
         console.log('[DEBUG] qaApi.sendMessageStream 请求体:', {
           use_rag: body.use_rag,
@@ -237,6 +267,8 @@ const qaApi = {
             const event = JSON.parse(raw) as StreamEvent;
             if (event.type === 'chunk') {
               onChunk(event.content);
+            } else if (event.type === 'reasoning_chunk') {
+              options.onReasoningChunk?.(event.content);
             } else if (event.type === 'done') {
               onDone?.(event.citations);
             } else if (event.type === 'error') {
@@ -254,6 +286,9 @@ const qaApi = {
           try {
             const event = JSON.parse(raw) as StreamEvent;
             if (event.type === 'chunk') onChunk(event.content);
+            else if (event.type === 'reasoning_chunk') {
+              options.onReasoningChunk?.(event.content);
+            }
             else if (event.type === 'done') onDone?.(event.citations);
             else if (event.type === 'error') onError?.(event.detail);
           } catch {

@@ -3,6 +3,7 @@ import type { KnowledgeCitation, Message as ApiMessage } from '../../api/qaApi';
 export interface ChatMessageItem {
   id: number;
   content: string;
+  reasoning_content?: string;
   sender: 'user' | 'ai';
   timestamp: Date;
   image_url?: string;
@@ -14,4 +15,5 @@ export interface ChatMessageFormatterParams {
   messages: ApiMessage[];
   isStreaming: boolean;
   streamingContent: string;
+  streamingReasoningContent: string;
 }

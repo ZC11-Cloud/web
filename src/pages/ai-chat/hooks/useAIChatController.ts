@@ -18,6 +18,7 @@ const useAIChatController = () => {
     sendMessage,
     clearMessagesError,
     streamingContent,
+    streamingReasoningContent,
     isStreaming,
     fetchConversations,
     setCurrentConversation,
@@ -51,8 +52,15 @@ const useAIChatController = () => {
         messages,
         isStreaming,
         streamingContent,
+        streamingReasoningContent,
       }),
-    [currentConversationId, messages, isStreaming, streamingContent]
+    [
+      currentConversationId,
+      messages,
+      isStreaming,
+      streamingContent,
+      streamingReasoningContent,
+    ]
   );
 
   const syncImageFromAttachments = async (
@@ -103,6 +111,8 @@ const useAIChatController = () => {
       use_image: useImage,
       image_base64: imageBase64 ?? undefined,
       model_name: currentModel,
+      enable_thinking: useDeepSearch,
+      preserve_thinking: useDeepSearch,
     };
     setInputValue('');
     setImageBase64(null);

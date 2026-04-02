@@ -10,7 +10,13 @@ export const DEFAULT_GREETING_MESSAGE: ChatMessageItem = {
 export const formatChatMessages = (
   params: ChatMessageFormatterParams
 ): ChatMessageItem[] => {
-  const { currentConversationId, messages, isStreaming, streamingContent } = params;
+  const {
+    currentConversationId,
+    messages,
+    isStreaming,
+    streamingContent,
+    streamingReasoningContent,
+  } = params;
 
   if (!currentConversationId) {
     return [DEFAULT_GREETING_MESSAGE];
@@ -23,6 +29,7 @@ export const formatChatMessages = (
     timestamp: new Date(msg.create_time),
     image_url: msg.image_url ?? undefined,
     citations: msg.citations ?? undefined,
+    reasoning_content: msg.reasoning_content ?? undefined,
   }));
 
   if (isStreaming) {
@@ -33,6 +40,7 @@ export const formatChatMessages = (
       timestamp: new Date(),
       image_url: undefined,
       citations: undefined,
+      reasoning_content: streamingReasoningContent || undefined,
     });
   }
 

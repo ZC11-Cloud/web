@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Avatar, message, Modal, Skeleton, theme } from 'antd';
-import { Actions, Bubble } from '@ant-design/x';
+import { Actions, Bubble, Think } from '@ant-design/x';
 import type { ActionsFeedbackProps, ActionsItemProps } from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/themes/light.css';
@@ -197,6 +197,19 @@ const ChatMessageList = (props: ChatMessageListProps) => {
                   display: 'block',
                 }}
               />
+            )}
+            {msg.sender === 'ai' && msg.reasoning_content && (
+              <Think
+                title={msg.id === -1 && isStreaming ? '思考中' : '思考过程'}
+                loading={msg.id === -1 && isStreaming}
+                defaultExpanded={msg.id === -1}
+              >
+                <XMarkdown
+                  className={markdownThemeClass}
+                  content={msg.reasoning_content}
+                  paragraphTag="div"
+                />
+              </Think>
             )}
             <XMarkdown
               className={markdownThemeClass}
