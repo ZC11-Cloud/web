@@ -27,6 +27,7 @@ interface ConversationStore {
   streamController: AbortController | null; // 流式发送的控制器
   // Actions
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
+  loadMoreConversations: (params?: ConversationsParams) => Promise<void>;
   setCurrentConversation: (
     id: number | null,
     options?: { skipFetch?: boolean }
@@ -160,6 +161,30 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     }
   },
 
+  loadMoreConversations: async (params = { skip: 0, limit: 20 }) => {
+    const { loading, conversations, total } = get();
+    if (loading) return;
+    if (total > 0 && conversations.length >= total) return;
+
+    set({ loading: true, error: null });
+    try {
+      const response = await qaApi.getConversations({
+        skip: conversations.length,
+        limit: params.limit,
+      });
+      set((state) => ({
+        conversations: [...state.conversations, ...response.conversations],
+        total: response.total,
+        loading: false,
+      }));
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : '获取会话列表失败',
+        loading: false,
+      });
+    }
+  },
+
   setCurrentConversation: (id, options) => {
     set({ currentConversationId: id, messages: [] });
 
@@ -180,6 +205,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         conversations: state.conversations.filter(
           (conv) => conv.id !== conversationId
         ),
+        total: Math.max(0, state.total - 1),
       }));
     } catch (error) {
       set({

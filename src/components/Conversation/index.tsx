@@ -3,25 +3,29 @@ import { useEffect } from 'react';
 import {
   DeleteOutlined,
   EditOutlined,
+  RedoOutlined,
   ShareAltOutlined,
   StopOutlined,
 } from '@ant-design/icons';
 import { Conversations } from '@ant-design/x';
 import type { ConversationsProps } from '@ant-design/x';
 import type { GetProp } from 'antd';
-import { message } from 'antd';
+import { message, Spin } from 'antd';
 import { useConversationStore } from '../../store/useConversationStore';
 import { useNavigate, useLocation } from 'react-router-dom';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const Conversation = () => {
   const {
     conversations,
+    total,
     error,
     currentConversationId,
     fetchConversations,
     setCurrentConversation,
     clearError,
     deleteConversation,
+    loadMoreConversations,
   } = useConversationStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,7 +43,9 @@ const Conversation = () => {
   }, [error, clearError]);
 
   const sortedConversations = [...conversations].sort((a, b) => {
-    return new Date(b.create_time).getTime() - new Date(a.create_time).getTime();
+    return (
+      new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+    );
   });
 
   const items: GetProp<ConversationsProps, 'items'> = sortedConversations.map(
@@ -103,18 +109,34 @@ const Conversation = () => {
   });
 
   return (
-    <div className="conversation-container">
-      <Conversations
-        activeKey={isChatRoute ? currentConversationId?.toString() : undefined}
-        menu={menuConfig}
-        items={items}
-        onActiveChange={(value: string) => {
-          if (location.pathname !== "/ai-chat" && location.pathname !== "/") {
-            navigate(`/ai-chat`);
+    <div className="conversation-container" id="scrollableDiv">
+      <InfiniteScroll
+        dataLength={items.length}
+        next={loadMoreConversations}
+        hasMore={items.length < total}
+        loader={
+          <div style={{ textAlign: 'center' }}>
+            <Spin indicator={<RedoOutlined spin />} size="small" />
+          </div>
+        }
+        endMessage={<div style={{ textAlign: 'center' }}>没有更多数据了</div>}
+        scrollableTarget="scrollableDiv"
+        style={{ overflow: 'hidden' }}
+      >
+        <Conversations
+          activeKey={
+            isChatRoute ? currentConversationId?.toString() : undefined
           }
-          setCurrentConversation(parseInt(value, 10))
-        }}
-      />
+          menu={menuConfig}
+          items={items}
+          onActiveChange={(value: string) => {
+            if (location.pathname !== '/ai-chat' && location.pathname !== '/') {
+              navigate(`/ai-chat`);
+            }
+            setCurrentConversation(parseInt(value, 10));
+          }}
+        />
+      </InfiniteScroll>
     </div>
   );
 };
