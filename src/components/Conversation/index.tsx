@@ -11,8 +11,6 @@ import type { ConversationsProps } from '@ant-design/x';
 import type { GetProp } from 'antd';
 import { message } from 'antd';
 import { useConversationStore } from '../../store/useConversationStore';
-import qaApi from '../../api/qaApi';
-import { useXConversations } from '@ant-design/x-sdk';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Conversation = () => {
@@ -103,33 +101,10 @@ const Conversation = () => {
       itemInfo.domEvent.stopPropagation();
     },
   });
-  
-  // 创建新对话
-  // const newChatClick = async () => {
-  //   try {
-  //     const newConversation = await qaApi.createConversation({
-  //       title: `新对话 ${new Date().toLocaleString()}`,
-  //     });
-      
-  //     message.success('创建新对话成功');
-      
-  //     // 刷新会话列表
-  //     fetchConversations();
-      
-  //     // 设置当前会话为新创建的会话
-  //     setCurrentConversation(newConversation.id);
-  //   } catch (error) {
-  //     message.error('创建新对话失败');
-  //   }
-  // };
 
   return (
     <div className="conversation-container">
       <Conversations
-        // creation={{
-        //   label: '新建对话',
-        //   onClick: newChatClick,
-        // }}
         activeKey={isChatRoute ? currentConversationId?.toString() : undefined}
         menu={menuConfig}
         items={items}
