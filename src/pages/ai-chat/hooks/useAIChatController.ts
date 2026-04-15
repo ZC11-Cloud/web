@@ -23,6 +23,8 @@ const useAIChatController = () => {
     fetchConversations,
     setCurrentConversation,
     cancelStreaming,
+    suggestionsByMessageId,
+    latestSuggestionMessageId,
   } = useConversationStore();
   const { currentModel } = useModelStore();
 
@@ -177,6 +179,8 @@ const useAIChatController = () => {
     useImage,
     setUseImage,
     formattedMessages,
+    suggestionsByMessageId,
+    latestSuggestionMessageId,
     fillSenderInput,
   };
 };

@@ -25,6 +25,8 @@ interface ConversationStore {
   /** 是否处于流式输出中 */
   isStreaming: boolean;
   streamController: AbortController | null; // 流式发送的控制器
+  suggestionsByMessageId: Record<number, string[]>;
+  latestSuggestionMessageId: number | null;
   // Actions
   fetchConversations: (params?: ConversationsParams) => Promise<void>;
   loadMoreConversations: (params?: ConversationsParams) => Promise<void>;
@@ -57,6 +59,11 @@ interface ConversationStore {
   clearMessagesError: () => void;
   cancelStreaming: () => Promise<void>; // 取消流式发送
   tryGenerateConversationTitle: (conversationId: number) => Promise<void>;
+  fetchSuggestions: (
+    conversationId: number,
+    options?: { messageId?: number; limit?: number }
+  ) => Promise<void>;
+  clearSuggestions: () => void;
 }
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
@@ -103,6 +110,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   streamingReasoningContent: '',
   isStreaming: false,
   streamController: null,
+  suggestionsByMessageId: {},
+  latestSuggestionMessageId: null,
 
   cancelStreaming: async () => {
     const {
@@ -186,7 +195,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   setCurrentConversation: (id, options) => {
-    set({ currentConversationId: id, messages: [] });
+    set({
+      currentConversationId: id,
+      messages: [],
+      suggestionsByMessageId: {},
+      latestSuggestionMessageId: null,
+    });
 
     // 如果设置了会话ID且未要求跳过拉取，则自动获取该会话的消息
     if (id !== null && !options?.skipFetch) {
@@ -273,6 +287,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       streamingReasoningContent: '',
       messagesError: null,
       streamController: controller,
+      suggestionsByMessageId: {},
+      latestSuggestionMessageId: null,
     }));
 
     try {
@@ -316,6 +332,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
             streamController: null,
           }));
           await get().tryGenerateConversationTitle(conversationId);
+          await get().fetchSuggestions(conversationId);
         },
         onError: (detail) => {
           set({
@@ -353,5 +370,44 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   clearMessagesError: () => {
     set({ messagesError: null });
+  },
+
+  fetchSuggestions: async (conversationId, options = {}) => {
+    const { messageId, limit = 3 } = options;
+    const currentMessages = get().messages;
+    const targetMessageId =
+      messageId ??
+      [...currentMessages]
+        .reverse()
+        .find((msg) => msg.role === 'assistant' && msg.conversation_id === conversationId)
+        ?.id;
+
+    if (!targetMessageId || targetMessageId <= 0) {
+      return;
+    }
+
+    try {
+      const response = await qaApi.getSuggestions(conversationId, {
+        message_id: targetMessageId,
+        limit,
+      });
+      const suggestions = (response.suggestions ?? []).filter(
+        (item) => typeof item === 'string' && item.trim().length > 0
+      );
+
+      set((state) => ({
+        suggestionsByMessageId: {
+          ...state.suggestionsByMessageId,
+          [targetMessageId]: suggestions,
+        },
+        latestSuggestionMessageId: suggestions.length > 0 ? targetMessageId : null,
+      }));
+    } catch {
+      set({ latestSuggestionMessageId: null });
+    }
+  },
+
+  clearSuggestions: () => {
+    set({ suggestionsByMessageId: {}, latestSuggestionMessageId: null });
   },
 }));

@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Avatar, message, Modal, Skeleton, theme } from 'antd';
-import { Actions, Bubble, Think } from '@ant-design/x';
-import type { ActionsFeedbackProps, ActionsItemProps } from '@ant-design/x';
+import { Actions, Bubble, Prompts, Think } from '@ant-design/x';
+import type {
+  ActionsFeedbackProps,
+  ActionsItemProps,
+  PromptsProps,
+} from '@ant-design/x';
 import { XMarkdown } from '@ant-design/x-markdown';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
@@ -21,6 +25,9 @@ interface ChatMessageListProps {
   messages: ChatMessageItem[];
   messagesLoading: boolean;
   isStreaming: boolean;
+  suggestionsByMessageId: Record<number, string[]>;
+  latestSuggestionMessageId: number | null;
+  onSuggestionClick: (content: string) => void;
   onSourceClick: (sourceId: string) => void;
   onEditUserMessage: (content: string) => void;
 }
@@ -47,8 +54,16 @@ const resolveImageUrl = (imageUrl: string) => {
 };
 
 const ChatMessageList = (props: ChatMessageListProps) => {
-  const { messages, messagesLoading, isStreaming, onSourceClick, onEditUserMessage } =
-    props;
+  const {
+    messages,
+    messagesLoading,
+    isStreaming,
+    suggestionsByMessageId,
+    latestSuggestionMessageId,
+    onSuggestionClick,
+    onSourceClick,
+    onEditUserMessage,
+  } = props;
   const { theme: antdTheme } = theme.useToken();
   const [feedbackStatus, setFeedbackStatus] =
     useState<ActionsFeedbackProps['value']>('default');
@@ -161,8 +176,6 @@ const ChatMessageList = (props: ChatMessageListProps) => {
   return (
     <Bubble.List
       style={{
-        flex: 1,
-        minHeight: 0,
         padding: '16px',
       }}
       items={messages.map((msg) => ({
@@ -174,7 +187,8 @@ const ChatMessageList = (props: ChatMessageListProps) => {
         header: msg.sender === 'user' ? '用户' : 'AquaMind',
         avatar: <Avatar icon={<UserOutlined />} />,
         footer: (content) => {
-          const actionText = typeof content === 'string' ? content : msg.content;
+          const actionText =
+            typeof content === 'string' ? content : msg.content;
           const items =
             msg.sender === 'user'
               ? createUserActionItems(actionText)
@@ -244,6 +258,29 @@ const ChatMessageList = (props: ChatMessageListProps) => {
                   : {}),
               }}
             />
+            {msg.sender === 'ai' &&
+              msg.id > 0 &&
+              msg.id === latestSuggestionMessageId &&
+              (suggestionsByMessageId[msg.id]?.length ?? 0) > 0 && (
+                <Prompts
+                  vertical
+                  items={suggestionsByMessageId[msg.id].map(
+                    (
+                      suggestion
+                    ): NonNullable<PromptsProps['items']>[number] => ({
+                      key: `${msg.id}-${suggestion}`,
+                      description: suggestion,
+                      disabled: isStreaming,
+                    })
+                  )}
+                  onItemClick={(info) => {
+                    const text = info?.data?.description;
+                    if (typeof text === 'string' && text.trim()) {
+                      onSuggestionClick(text);
+                    }
+                  }}
+                />
+              )}
           </>
         ),
       }))}

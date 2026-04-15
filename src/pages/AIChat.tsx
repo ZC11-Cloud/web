@@ -29,6 +29,8 @@ const AIChat = () => {
     setUseRag,
     useImage,
     setUseImage,
+    suggestionsByMessageId,
+    latestSuggestionMessageId,
   } = useAIChatController();
 
   return (
@@ -40,6 +42,9 @@ const AIChat = () => {
             messagesLoading={messagesLoading}
             isStreaming={isStreaming}
             onEditUserMessage={fillSenderInput}
+            suggestionsByMessageId={suggestionsByMessageId}
+            latestSuggestionMessageId={latestSuggestionMessageId}
+            onSuggestionClick={handleSubmit}
             onSourceClick={(sourceId) => {
               navigate(
                 `/knowledge-base/documents/${encodeURIComponent(sourceId)}`

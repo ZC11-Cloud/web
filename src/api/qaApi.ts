@@ -62,6 +62,10 @@ export interface MessagesResponse {
   total: number;
 }
 
+export interface SuggestionsResponse {
+  suggestions: string[];
+}
+
 // 发送消息请求接口
 export interface SendMessageRequest {
   conversation_id: number;
@@ -128,6 +132,11 @@ export interface SendMessageStreamOptions {
   signal?: AbortSignal;
 }
 
+export interface SuggestionParams {
+  message_id?: number;
+  limit?: number;
+}
+
 const qaApi = {
   // 获取会话
   getConversations: (
@@ -166,6 +175,19 @@ const qaApi = {
         },
       }
     );
+  },
+
+  // 获取建议追问
+  getSuggestions: (
+    conversationId: number,
+    params: SuggestionParams = {}
+  ): Promise<SuggestionsResponse> => {
+    return axiosInstance.get(`/qa/conversations/${conversationId}/suggestions`, {
+      params: {
+        message_id: params.message_id,
+        limit: params.limit ?? 3,
+      },
+    });
   },
 
   // 新增消息
