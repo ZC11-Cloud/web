@@ -184,7 +184,7 @@ const ChatMessageList = (props: ChatMessageListProps) => {
         content: msg.content,
         placement: msg.sender === 'user' ? 'end' : 'start',
         footerPlacement: msg.sender === 'user' ? 'outer-end' : 'outer-start',
-        header: msg.sender === 'user' ? '用户' : 'AquaMind',
+        header: msg.sender === 'user' ? '用户' : 'ai智能体',
         avatar: <Avatar icon={<UserOutlined />} />,
         footer: (content) => {
           const actionText =

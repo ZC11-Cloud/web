@@ -12,7 +12,7 @@ import {
 } from 'antd';
 import {
   EditTwoTone,
-  UploadOutlined,
+  PictureOutlined,
   BookOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -70,7 +70,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
     },
     {
       key: '/image-recognition',
-      icon: <UploadOutlined />,
+      icon: <PictureOutlined />,
       label: '图像识别',
       path: '/image-recognition',
     },

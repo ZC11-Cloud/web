@@ -2,7 +2,7 @@ import type { ChatMessageFormatterParams, ChatMessageItem } from '../types';
 
 export const DEFAULT_GREETING_MESSAGE: ChatMessageItem = {
   id: 0,
-  content: '你好！我是AquaMind智能助手，有什么关于水生生物的问题可以问我。',
+  content: '你好！我是水生生物咨询智能助手，有什么关于水生生物的问题可以问我。',
   sender: 'ai',
   timestamp: new Date(),
 };
