@@ -33,9 +33,8 @@ const Profile = () => {
 
   const handleSave = async (values: any) => {
     try {
-      // 这里应该调用API更新用户信息
-      // await userApi.updateUserInfo(values);
-      updateUserInfo(values);
+      const response = await userApi.updateUserInfo(values);
+      updateUserInfo(response.data);
       setIsEditing(false);
       message.success('用户信息更新成功！');
     } catch (error) {

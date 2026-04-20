@@ -30,7 +30,7 @@ export interface UserInfo {
   email?: string;
   role: number;
   status: number;
-  avatar?: string;
+  avatar_url?: string;
 }
 
 // 通用响应接口
@@ -76,13 +76,13 @@ const userApi = {
   updateUserInfo: (
     params: UpdateUserParams
   ): Promise<ApiResponse<UserInfo>> => {
-    return axiosInstance.put('/user/update', params);
+    return axiosInstance.put('/user/me', params);
   },
 
   // 上传用户头像
   uploadAvatar: (avatarFile: File): Promise<ApiResponse<string>> => {
     const formData = new FormData();
-    formData.append('avatar', avatarFile);
+    formData.append('file', avatarFile);
     return axiosInstance.post('/user/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
