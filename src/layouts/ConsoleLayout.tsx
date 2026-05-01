@@ -119,7 +119,6 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
         message.error('创建新对话失败');
       }
     }
-
   };
 
   const handleLogout = () => {
