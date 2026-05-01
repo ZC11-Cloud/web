@@ -15,16 +15,18 @@ import {
   BookOutlined,
   UserOutlined,
   TeamOutlined,
+  LogoutOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './ConsoleLayout.css';
 import { useUserStore } from '../store/useUserStore';
 import Conversation from '../components/Conversation';
 import qaApi from '../api/qaApi';
 import { useConversationStore } from '../store/useConversationStore';
 import { useModelStore, DEFAULT_MODEL_NAME } from '../store/useModelStore';
+import axiosInstance from '../api/axiosInstance';
 const { Sider, Content, Header } = Layout;
 const { Title } = Typography;
 
@@ -38,6 +40,7 @@ interface MenuItem {
 const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     fetchConversations,
     setCurrentConversation,
@@ -45,7 +48,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
     currentConversationId,
   } = useConversationStore();
   const { currentModel, setCurrentModel } = useModelStore();
-  const { user } = useUserStore();
+  const { user, logout } = useUserStore();
 
   const currentConversation = conversations.find(
     (c) => c.id === currentConversationId
@@ -119,6 +122,14 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
 
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    delete axiosInstance.defaults.headers.common['Authorization'];
+    logout();
+    message.success('已退出登录');
+    navigate('/login');
+  };
+
   return (
     <Layout className="console-layout">
       <Sider
@@ -172,6 +183,15 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="sider-footer">
             <Avatar size="small" icon={<UserOutlined />} />
             <span className="sider-user-text">{user?.username || '用户'}</span>
+            <Button
+              type="text"
+              size="small"
+              className="sider-logout-btn"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+            >
+              退出
+            </Button>
           </div>
         )}
       </Sider>

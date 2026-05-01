@@ -73,6 +73,10 @@
   white-space: nowrap;
 }
 
+.sider-logout-btn {
+  color: rgba(0, 0, 0, 0.65);
+}
+
 /* 右侧整块内容区 */
 .console-content {
   flex: 1;
