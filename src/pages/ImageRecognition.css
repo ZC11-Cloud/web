@@ -10,6 +10,10 @@
   min-height: 400px;
 }
 
+.model-card {
+  margin-top: 24px;
+}
+
 .result-card {
   min-height: 400px;
 }
@@ -57,6 +61,49 @@
   margin: 0;
 }
 
-.species-features ul {
-  padding-left: 20px;
+.annotated-image {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.bbox-text {
+  color: #666;
+  font-size: 12px;
+}
+
+.history-card {
+  margin-top: 24px;
+}
+
+.history-item {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.history-item.selected {
+  background: #f0f7ff;
+}
+
+.history-pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.history-detail {
+  min-height: 240px;
+}
+
+.history-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.history-image {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
