@@ -28,9 +28,54 @@ export interface UserInfo {
   real_name?: string;
   phone?: string;
   email?: string;
-  role: number;
-  status: number;
+  role: UserRole;
+  status: UserStatus;
   avatar_url?: string;
+}
+
+export type UserRole = 0 | 1;
+export type UserStatus = 0 | 1;
+
+export interface AdminUserItem extends UserInfo {
+  create_time: string;
+  update_time: string;
+}
+
+export interface AdminUserListData {
+  items: AdminUserItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface AdminUserListParams {
+  page: number;
+  page_size: number;
+  keyword?: string;
+}
+
+export interface AdminCreateUserParams {
+  username: string;
+  password: string;
+  real_name?: string;
+  phone?: string;
+  email?: string;
+  role: UserRole;
+  status: UserStatus;
+}
+
+export interface AdminUpdateUserParams {
+  real_name?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface AdminUpdateUserStatusParams {
+  status: UserStatus;
+}
+
+export interface AdminUpdateUserRoleParams {
+  role: UserRole;
 }
 
 // 通用响应接口
@@ -95,6 +140,54 @@ const userApi = {
     return axiosInstance.get(`/user/avatar/${userId}`, {
       responseType: 'blob',
     });
+  },
+
+  // 管理员分页查询用户列表
+  listAdminUsers: (
+    params: AdminUserListParams
+  ): Promise<ApiResponse<AdminUserListData>> => {
+    return axiosInstance.get('/user/admin/list', { params });
+  },
+
+  // 管理员获取用户详情
+  getAdminUserById: (userId: number): Promise<ApiResponse<AdminUserItem>> => {
+    return axiosInstance.get(`/user/admin/${userId}`);
+  },
+
+  // 管理员新增用户
+  createAdminUser: (
+    params: AdminCreateUserParams
+  ): Promise<ApiResponse<null>> => {
+    return axiosInstance.post('/user/admin', params);
+  },
+
+  // 管理员更新用户基础资料
+  updateAdminUser: (
+    userId: number,
+    params: AdminUpdateUserParams
+  ): Promise<ApiResponse<AdminUserItem>> => {
+    return axiosInstance.put(`/user/admin/${userId}`, params);
+  },
+
+  // 管理员更新用户状态
+  updateAdminUserStatus: (
+    userId: number,
+    params: AdminUpdateUserStatusParams
+  ): Promise<ApiResponse<AdminUserItem>> => {
+    return axiosInstance.patch(`/user/admin/${userId}/status`, params);
+  },
+
+  // 管理员更新用户角色
+  updateAdminUserRole: (
+    userId: number,
+    params: AdminUpdateUserRoleParams
+  ): Promise<ApiResponse<AdminUserItem>> => {
+    return axiosInstance.patch(`/user/admin/${userId}/role`, params);
+  },
+
+  // 管理员删除用户
+  deleteAdminUser: (userId: number): Promise<ApiResponse<null>> => {
+    return axiosInstance.delete(`/user/admin/${userId}`);
   },
 };
 

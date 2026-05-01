@@ -7,7 +7,6 @@ import {
   Button,
   message,
   Divider,
-  Dropdown,
   Select,
 } from 'antd';
 import {
@@ -15,11 +14,11 @@ import {
   PictureOutlined,
   BookOutlined,
   UserOutlined,
-  LogoutOutlined,
+  TeamOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './ConsoleLayout.css';
 import { useUserStore } from '../store/useUserStore';
 import Conversation from '../components/Conversation';
@@ -39,7 +38,6 @@ interface MenuItem {
 const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const {
     fetchConversations,
     setCurrentConversation,
@@ -61,7 +59,7 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
     { label: 'Qwen3-VL-Plus', value: 'qwen3-vl-plus' },
     { label: 'Qwen3-VL-Flash', value: 'qwen3-vl-flash' },
   ];
-  const menuItems: MenuItem[] = [
+  const baseMenuItems: MenuItem[] = [
     {
       key: '/ai-chat',
       icon: <EditTwoTone />,
@@ -87,6 +85,18 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       path: '/profile',
     },
   ];
+  const adminMenuItems: MenuItem[] =
+    user?.role === 1
+      ? [
+          {
+            key: '/user-management',
+            icon: <TeamOutlined />,
+            label: '用户管理',
+            path: '/user-management',
+          },
+        ]
+      : [];
+  const menuItems = [...baseMenuItems, ...adminMenuItems];
 
   const handleMenuClick = async ({ key }: { key: string }) => {
     if (key === '/ai-chat') {
@@ -107,15 +117,6 @@ const ConsoleLayout = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    // navigate(key);
-  };
-
-  const { logout: logoutStore } = useUserStore();
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    logoutStore();
-    message.success('退出登录成功！');
-    navigate('/login');
   };
 
   return (

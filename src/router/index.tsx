@@ -8,7 +8,9 @@ import KnowledgeBase from '../pages/KnowledgeBase';
 import KnowledgeDocumentDetail from '../pages/KnowledgeDocumentDetail';
 import ConsoleLayout from '../layouts/ConsoleLayout';
 import AuthGuard from '../components/AuthGuard';
+import AdminGuard from '../components/AdminGuard';
 import Profile from '../pages/Profile';
+import UserManagement from '../pages/UserManagement';
 
 export const router = createBrowserRouter([
   {
@@ -74,6 +76,18 @@ export const router = createBrowserRouter([
             <ConsoleLayout>
               <Profile />
             </ConsoleLayout>
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'user-management',
+        element: (
+          <AuthGuard>
+            <AdminGuard>
+              <ConsoleLayout>
+                <UserManagement />
+              </ConsoleLayout>
+            </AdminGuard>
           </AuthGuard>
         ),
       },

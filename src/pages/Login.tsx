@@ -9,7 +9,7 @@ import {
   Typography,
   Button,
 } from 'antd';
-import { UserOutlined, LockOutlined, CiOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
