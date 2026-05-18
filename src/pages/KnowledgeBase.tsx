@@ -19,7 +19,7 @@ import type { UploadProps } from 'antd';
 import {
   SearchOutlined,
   TagOutlined,
-  FireOutlined,
+  UnorderedListOutlined,
   UploadOutlined,
   InboxOutlined,
 } from '@ant-design/icons';
@@ -259,7 +259,7 @@ const KnowledgeBase = () => {
       ) : (
         <div className="knowledge-list">
           <Title level={4} style={{ margin: '30px 0 20px 0' }}>
-            <FireOutlined /> {selectedTag ? `${selectedTag} 分类` : '推荐知识'}
+            <UnorderedListOutlined /> {selectedTag ? `${selectedTag} 分类` : '知识列表'}
           </Title>
           {documents.length === 0 ? (
             <Empty description={selectedTag ? '该分类下暂无知识文档' : '暂无知识文档'} />
