@@ -4,6 +4,7 @@ import type {
   KnowledgeDocumentItem,
   KnowledgeDocumentsParams,
   KnowledgeSearchHit,
+  KnowledgeTagItem,
 } from '../api/knowledgeApi';
 
 interface KnowledgeStore {
@@ -26,15 +27,20 @@ interface KnowledgeStore {
   searchLoading: boolean;
   searchError: string | null;
   uploadLoading: boolean;
+  tags: KnowledgeTagItem[];
+  tagsLoading: boolean;
+  selectedTag: string | null;
 
   fetchDocuments: (params?: Partial<KnowledgeDocumentsParams>) => Promise<void>;
+  fetchTags: () => Promise<void>;
   fetchDocument: (sourceId: string) => Promise<void>;
   fetchDocumentContent: (sourceId: string) => Promise<void>;
   searchDocuments: (q: string, topK?: number) => Promise<void>;
   clearSearch: () => void;
-  uploadDocument: (file: File) => Promise<void>;
+  uploadDocument: (file: File, tags?: string[]) => Promise<void>;
   deleteDocument: (sourceId: string) => Promise<void>;
 
+  setSelectedTag: (tag: string | null) => Promise<void>;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
   clearCurrentDocument: () => void;
@@ -59,13 +65,20 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
   searchLoading: false,
   searchError: null,
   uploadLoading: false,
+  tags: [],
+  tagsLoading: false,
+  selectedTag: null,
 
   fetchDocuments: async (params = {}) => {
-    const { page = get().page, page_size = get().pageSize } = params;
+    const {
+      page = get().page,
+      page_size = get().pageSize,
+      tag = get().selectedTag,
+    } = params;
     set({ loading: true, error: null });
 
     try {
-      const response = await knowledgeApi.getDocuments({ page, page_size });
+      const response = await knowledgeApi.getDocuments({ page, page_size, tag });
       set({
         documents: response.documents,
         total: response.total,
@@ -78,6 +91,16 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
         error: err instanceof Error ? err.message : '获取文档列表失败',
         loading: false,
       });
+    }
+  },
+
+  fetchTags: async () => {
+    set({ tagsLoading: true });
+    try {
+      const response = await knowledgeApi.getTags();
+      set({ tags: response.tags, tagsLoading: false });
+    } catch {
+      set({ tags: [], tagsLoading: false });
     }
   },
 
@@ -147,12 +170,17 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
       searchError: null,
     }),
 
-  uploadDocument: async (file: File) => {
+  uploadDocument: async (file: File, tags = []) => {
     set({ uploadLoading: true, error: null });
 
     try {
-      await knowledgeApi.uploadDocument(file);
-      await get().fetchDocuments({ page: get().page, page_size: get().pageSize });
+      await knowledgeApi.uploadDocument(file, tags);
+      await get().fetchDocuments({
+        page: get().page,
+        page_size: get().pageSize,
+        tag: get().selectedTag,
+      });
+      await get().fetchTags();
       set({ uploadLoading: false });
     } catch (err) {
       set({
@@ -174,12 +202,18 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
             ? null
             : state.currentDocument,
       }));
+      await get().fetchTags();
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : '删除文档失败',
       });
       throw err;
     }
+  },
+
+  setSelectedTag: async (tag) => {
+    set({ selectedTag: tag, page: 1 });
+    await get().fetchDocuments({ page: 1, page_size: get().pageSize, tag });
   },
 
   setPage: (page) => set({ page }),

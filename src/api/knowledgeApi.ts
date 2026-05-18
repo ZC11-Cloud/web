@@ -14,6 +14,7 @@ export interface KnowledgeDocumentItem {
 export interface KnowledgeDocumentsParams {
   page?: number;
   page_size?: number;
+  tag?: string | null;
 }
 
 /** 文档列表响应 */
@@ -22,6 +23,15 @@ export interface KnowledgeDocumentListResponse {
   total: number;
   page: number;
   page_size: number;
+}
+
+export interface KnowledgeTagItem {
+  name: string;
+  count: number;
+}
+
+export interface KnowledgeTagListResponse {
+  tags: KnowledgeTagItem[];
 }
 
 /** 上传文档响应 */
@@ -63,9 +73,15 @@ export interface KnowledgeSearchResponse {
 
 const knowledgeApi = {
   /** 上传文档 */
-  uploadDocument: (file: File): Promise<KnowledgeUploadResponse> => {
+  uploadDocument: (
+    file: File,
+    tags: string[] = []
+  ): Promise<KnowledgeUploadResponse> => {
     const formData = new FormData();
     formData.append('file', file);
+    if (tags.length > 0) {
+      formData.append('tags', JSON.stringify(tags));
+    }
     return axiosInstance.post('/knowledge/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -81,8 +97,14 @@ const knowledgeApi = {
       params: {
         page: params.page ?? 1,
         page_size: params.page_size ?? 20,
+        tag: params.tag || undefined,
       },
     });
+  },
+
+  /** 获取已使用的知识分类标签 */
+  getTags: (): Promise<KnowledgeTagListResponse> => {
+    return axiosInstance.get('/knowledge/tags');
   },
 
   /** 获取单个文档详情 */

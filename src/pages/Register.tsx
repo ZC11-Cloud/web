@@ -1,6 +1,5 @@
 import { Button, Card, Form, Input, Typography, Row, Col, message } from 'antd';
 import {
-  CiOutlined,
   UserOutlined,
   LockOutlined,
   MailOutlined,

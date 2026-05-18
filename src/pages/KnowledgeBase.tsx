@@ -13,6 +13,7 @@ import {
   Empty,
   Alert,
   Button,
+  Select,
 } from 'antd';
 import type { UploadProps } from 'antd';
 import {
@@ -24,7 +25,7 @@ import {
 } from '@ant-design/icons';
 import './KnowledgeBase.css';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 const { Title, Paragraph } = Typography;
 const { Search } = Input;
@@ -38,6 +39,11 @@ const KnowledgeBase = () => {
   const {
     documents,
     fetchDocuments,
+    tags,
+    tagsLoading,
+    fetchTags,
+    selectedTag,
+    setSelectedTag,
     uploadDocument,
     uploadLoading,
     searchQuery,
@@ -47,9 +53,17 @@ const KnowledgeBase = () => {
     searchDocuments,
     clearSearch,
   } = useKnowledgeStore();
+  const [uploadTags, setUploadTags] = useState<string[]>([]);
+
+  const tagOptions = useMemo(
+    () => tags.map((tag) => ({ label: tag.name, value: tag.name })),
+    [tags]
+  );
+
   useEffect(() => {
     fetchDocuments();
-  }, []);
+    fetchTags();
+  }, [fetchDocuments, fetchTags]);
 
   const onSearch = (value: string) => {
     const v = value.trim();
@@ -63,7 +77,8 @@ const KnowledgeBase = () => {
   const customRequest: UploadProps['customRequest'] = async (options) => {
     const { file, onSuccess, onError } = options;
     try {
-      await uploadDocument(file as File);
+      await uploadDocument(file as File, uploadTags);
+      setUploadTags([]);
       onSuccess?.(null);
     } catch {
       onError?.(new Error('上传失败'));
@@ -112,6 +127,25 @@ const KnowledgeBase = () => {
         <Title level={4} style={{ marginBottom: '16px' }}>
           <UploadOutlined /> 上传知识
         </Title>
+        <Select
+          mode="tags"
+          allowClear
+          maxCount={10}
+          maxTagTextLength={20}
+          value={uploadTags}
+          options={tagOptions}
+          loading={tagsLoading}
+          placeholder="选择已有标签，或输入新标签后回车"
+          onChange={(values) => {
+            const cleaned = values
+              .map((value) => value.trim())
+              .filter(Boolean)
+              .filter((value, index, arr) => arr.indexOf(value) === index)
+              .slice(0, 10);
+            setUploadTags(cleaned);
+          }}
+          style={{ width: '100%', marginBottom: 16 }}
+        />
         <Dragger
           name="file"
           multiple
@@ -143,13 +177,26 @@ const KnowledgeBase = () => {
         <Title level={4} style={{ marginBottom: '16px' }}>
           <TagOutlined /> 知识分类
         </Title>
-        <Space>
-          <Tag color="blue">鱼类</Tag>
-          <Tag color="green">藻类</Tag>
-          <Tag color="orange">贝类</Tag>
-          <Tag color="purple">海洋生态</Tag>
-          <Tag color="red">保护动物</Tag>
-          <Tag color="cyan">养殖技术</Tag>
+        <Space wrap>
+          <Tag.CheckableTag
+            checked={!selectedTag}
+            onChange={() => {
+              void setSelectedTag(null);
+            }}
+          >
+            全部
+          </Tag.CheckableTag>
+          {tags.map((tag) => (
+            <Tag.CheckableTag
+              key={tag.name}
+              checked={selectedTag === tag.name}
+              onChange={() => {
+                void setSelectedTag(selectedTag === tag.name ? null : tag.name);
+              }}
+            >
+              {tag.name} ({tag.count})
+            </Tag.CheckableTag>
+          ))}
         </Space>
       </div>
 
@@ -212,10 +259,13 @@ const KnowledgeBase = () => {
       ) : (
         <div className="knowledge-list">
           <Title level={4} style={{ margin: '30px 0 20px 0' }}>
-            <FireOutlined /> 推荐知识
+            <FireOutlined /> {selectedTag ? `${selectedTag} 分类` : '推荐知识'}
           </Title>
-          <Row gutter={[16, 16]}>
-            {documents.map((item) => (
+          {documents.length === 0 ? (
+            <Empty description={selectedTag ? '该分类下暂无知识文档' : '暂无知识文档'} />
+          ) : (
+            <Row gutter={[16, 16]}>
+              {documents.map((item) => (
               <Col xs={24} sm={12} md={8} key={item.source_id}>
                 <Card
                   hoverable
@@ -237,19 +287,22 @@ const KnowledgeBase = () => {
                   </div>
                   <Paragraph ellipsis={{ rows: 3 }}>{item.summary}</Paragraph>
                   <div className="card-footer">
-                    <Space wrap style={{ marginBottom: '10px' }}>
-                      {item.tags.map((tag, index) => (
-                        <Tag key={index}>{tag}</Tag>
-                      ))}
-                    </Space>
+                    {item.tags.length > 0 && (
+                      <Space wrap style={{ marginBottom: '10px' }}>
+                        {item.tags.map((tag, index) => (
+                          <Tag key={index}>{tag}</Tag>
+                        ))}
+                      </Space>
+                    )}
                     {/* <div className="view-count">
                       <span>浏览量: {item.viewCount}</span>
                     </div> */}
                   </div>
                 </Card>
               </Col>
-            ))}
-          </Row>
+              ))}
+            </Row>
+          )}
         </div>
       )}
     </div>
