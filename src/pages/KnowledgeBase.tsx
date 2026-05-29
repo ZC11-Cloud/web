@@ -14,9 +14,12 @@ import {
   Alert,
   Button,
   Select,
+  Segmented,
 } from 'antd';
 import type { UploadProps } from 'antd';
 import {
+  AppstoreOutlined,
+  BarsOutlined,
   SearchOutlined,
   TagOutlined,
   UnorderedListOutlined,
@@ -27,12 +30,14 @@ import './KnowledgeBase.css';
 import { useKnowledgeStore } from '../store/useKnowledgeStore';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 const { Title, Paragraph } = Typography;
 const { Search } = Input;
 
 /** 知识库支持的扩展名（与后端一致） */
 const ALLOWED_EXTENSIONS = ['.pdf', '.txt', '.md', '.docx'];
 const ACCEPT = '.pdf,.txt,.md,.docx';
+type KnowledgeViewMode = 'card' | 'list';
 
 const KnowledgeBase = () => {
   const navigate = useNavigate();
@@ -54,6 +59,7 @@ const KnowledgeBase = () => {
     clearSearch,
   } = useKnowledgeStore();
   const [uploadTags, setUploadTags] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<KnowledgeViewMode>('card');
 
   const tagOptions = useMemo(
     () => tags.map((tag) => ({ label: tag.name, value: tag.name })),
@@ -96,6 +102,9 @@ const KnowledgeBase = () => {
 
   const { Dragger } = Upload;
 
+  const openDocument = (sourceId: string) => {
+    navigate(`/knowledge-base/documents/${encodeURIComponent(sourceId)}`);
+  };
 
   return (
     <div className="knowledge-base">
@@ -258,11 +267,62 @@ const KnowledgeBase = () => {
         </div>
       ) : (
         <div className="knowledge-list">
-          <Title level={4} style={{ margin: '30px 0 20px 0' }}>
-            <UnorderedListOutlined /> {selectedTag ? `${selectedTag} 分类` : '知识列表'}
-          </Title>
+          <div className="knowledge-list-header">
+            <Title level={4} style={{ margin: 0 }}>
+              <UnorderedListOutlined /> {selectedTag ? `${selectedTag} 分类` : '知识列表'}
+            </Title>
+            <Segmented<KnowledgeViewMode>
+              value={viewMode}
+              onChange={setViewMode}
+              options={[
+                {
+                  label: '卡片',
+                  value: 'card',
+                  icon: <AppstoreOutlined />,
+                },
+                {
+                  label: '列表',
+                  value: 'list',
+                  icon: <BarsOutlined />,
+                },
+              ]}
+            />
+          </div>
           {documents.length === 0 ? (
             <Empty description={selectedTag ? '该分类下暂无知识文档' : '暂无知识文档'} />
+          ) : viewMode === 'list' ? (
+            <div className="knowledge-list-plain">
+              {documents.map((item) => (
+                <button
+                  type="button"
+                  key={item.source_id}
+                  className="knowledge-list-row"
+                  onClick={() => openDocument(item.source_id)}
+                >
+                  <div className="knowledge-list-main">
+                    <Typography.Text className="knowledge-list-title">
+                      {item.original_filename}
+                    </Typography.Text>
+                    <Paragraph className="knowledge-list-summary" ellipsis={{ rows: 2 }}>
+                      {item.summary || '暂无简介'}
+                    </Paragraph>
+                  </div>
+                  <div className="knowledge-list-tags">
+                    {item.tags.length > 0 ? (
+                      item.tags.map((tag, index) => <Tag key={index}>{tag}</Tag>)
+                    ) : (
+                      <Typography.Text type="secondary">暂无标签</Typography.Text>
+                    )}
+                  </div>
+                  <div className="knowledge-list-meta">
+                    <Typography.Text>Chunks: {item.chunk_count}</Typography.Text>
+                    <Typography.Text type="secondary">
+                      {dayjs(item.create_time).format('YYYY-MM-DD HH:mm')}
+                    </Typography.Text>
+                  </div>
+                </button>
+              ))}
+            </div>
           ) : (
             <Row gutter={[16, 16]}>
               {documents.map((item) => (
@@ -270,11 +330,7 @@ const KnowledgeBase = () => {
                 <Card
                   hoverable
                   className="knowledge-card"
-                  onClick={() =>
-                    navigate(
-                      `/knowledge-base/documents/${encodeURIComponent(item.source_id)}`
-                    )
-                  }
+                  onClick={() => openDocument(item.source_id)}
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="card-header">
