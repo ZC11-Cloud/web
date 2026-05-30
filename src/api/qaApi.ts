@@ -35,6 +35,13 @@ export interface KnowledgeCitation {
 }
 
 // 消息接口
+export interface QaAttachment {
+  file_id: string;
+  original_filename: string;
+  file_ext?: string | null;
+  size?: number | null;
+}
+
 export interface Message {
   id: number;
   conversation_id: number;
@@ -43,6 +50,7 @@ export interface Message {
   create_time: string;
   /** 用户消息附带图片时的访问 URL（本地存储或后期 OSS），历史记录中用于在气泡上方展示 */
   image_url?: string | null;
+  attachments?: QaAttachment[] | null;
   /** AI 回复引用的知识库来源，供 Sources 上标溯源 */
   citations?: KnowledgeCitation[] | null;
   /** AI 思考过程（深度思考模型可选） */
@@ -73,6 +81,7 @@ export interface SendMessageRequest {
   use_rag?: boolean;
   use_image?: boolean;
   image_base64?: string | null;
+  attachments?: QaAttachment[];
   /** 可选：指定后端使用的模型名称 */
   model_name?: string;
   /** 是否启用深度思考 */
@@ -84,7 +93,30 @@ export interface SendMessageRequest {
 }
 
 // 流式消息 SSE 事件类型
-export type StreamEventType = 'chunk' | 'reasoning_chunk' | 'done' | 'error';
+export type StreamTraceStage =
+  | 'prepare'
+  | 'rag'
+  | 'image'
+  | 'agent'
+  | 'model'
+  | 'done';
+
+export type StreamTraceStatus = 'pending' | 'running' | 'success' | 'error';
+
+export interface StreamTraceEvent {
+  type: 'trace';
+  stage: StreamTraceStage;
+  status: StreamTraceStatus;
+  title: string;
+  detail?: string;
+}
+
+export type StreamEventType =
+  | 'chunk'
+  | 'reasoning_chunk'
+  | 'trace'
+  | 'done'
+  | 'error';
 
 export interface StreamEventChunk {
   type: 'chunk';
@@ -109,6 +141,7 @@ export interface StreamEventError {
 export type StreamEvent =
   | StreamEventChunk
   | StreamEventReasoningChunk
+  | StreamTraceEvent
   | StreamEventDone
   | StreamEventError;
 
@@ -117,6 +150,7 @@ export interface SendMessageStreamOptions {
   use_rag?: boolean;
   use_image?: boolean;
   image_base64?: string | null;
+  attachments?: QaAttachment[];
   /** 可选：指定后端使用的模型名称 */
   model_name?: string;
   /** 是否启用深度思考 */
@@ -127,6 +161,7 @@ export interface SendMessageStreamOptions {
   preserve_thinking?: boolean;
   onChunk: (content: string) => void;
   onReasoningChunk?: (content: string) => void;
+  onTrace?: (event: StreamTraceEvent) => void;
   onDone?: (citations?: KnowledgeCitation[]) => void;
   onError?: (detail: string) => void;
   signal?: AbortSignal;
@@ -138,6 +173,16 @@ export interface SuggestionParams {
 }
 
 const qaApi = {
+  uploadAttachment: (file: File): Promise<QaAttachment> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axiosInstance.post('/qa/attachments', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
   // 获取会话
   getConversations: (
     params: ConversationsParams
@@ -199,6 +244,7 @@ const qaApi = {
         use_rag: data.use_rag,
         use_image: data.use_image,
         image_base64: data.image_base64 ?? undefined,
+        attachments: data.attachments,
         model_name: data.model_name,
         enable_thinking: data.enable_thinking,
         thinking_budget: data.thinking_budget,
@@ -220,6 +266,7 @@ const qaApi = {
       use_rag,
       use_image,
       image_base64,
+      attachments,
       model_name,
       onChunk,
       onDone,
@@ -242,6 +289,7 @@ const qaApi = {
           use_rag: use_rag ?? false,
           use_image: use_image ?? false,
           image_base64: image_base64 ?? undefined,
+          attachments,
           model_name,
           enable_thinking: options.enable_thinking,
           thinking_budget: options.thinking_budget,
@@ -272,51 +320,50 @@ const qaApi = {
 
     const decoder = new TextDecoder();
     let buffer = '';
+    const handleEvent = (event: StreamEvent) => {
+      if (event.type === 'chunk') {
+        onChunk(event.content);
+      } else if (event.type === 'reasoning_chunk') {
+        options.onReasoningChunk?.(event.content);
+      } else if (event.type === 'trace') {
+        options.onTrace?.(event);
+      } else if (event.type === 'done') {
+        onDone?.(event.citations);
+      } else if (event.type === 'error') {
+        onError?.(event.detail);
+      }
+    };
+
+    const parseDataLine = (line: string) => {
+      const normalized = line.trimEnd();
+      if (!normalized.startsWith('data: ')) return;
+      const raw = normalized.slice(6).trim();
+      if (raw === '') return;
+      try {
+        handleEvent(JSON.parse(raw) as StreamEvent);
+      } catch {
+        // 忽略单行解析失败
+      }
+    };
 
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          buffer += decoder.decode();
+          break;
+        }
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() ?? '';
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const raw = line.slice(6).trim();
-          if (raw === '') continue;
-          try {
-            const event = JSON.parse(raw) as StreamEvent;
-            if (event.type === 'chunk') {
-              onChunk(event.content);
-            } else if (event.type === 'reasoning_chunk') {
-              options.onReasoningChunk?.(event.content);
-            } else if (event.type === 'done') {
-              onDone?.(event.citations);
-            } else if (event.type === 'error') {
-              onError?.(event.detail);
-            }
-          } catch {
-            // 忽略单行解析失败
-          }
+          parseDataLine(line);
         }
       }
-      // 剩余 buffer 再解析一行
-      if (buffer.startsWith('data: ')) {
-        const raw = buffer.slice(6).trim();
-        if (raw) {
-          try {
-            const event = JSON.parse(raw) as StreamEvent;
-            if (event.type === 'chunk') onChunk(event.content);
-            else if (event.type === 'reasoning_chunk') {
-              options.onReasoningChunk?.(event.content);
-            }
-            else if (event.type === 'done') onDone?.(event.citations);
-            else if (event.type === 'error') onError?.(event.detail);
-          } catch {
-            // ignore
-          }
-        }
+      // 剩余 buffer 可能包含一条或多条尚未处理的 data 行
+      if (buffer) {
+        buffer.split('\n').forEach(parseDataLine);
       }
     } finally {
       reader.releaseLock();

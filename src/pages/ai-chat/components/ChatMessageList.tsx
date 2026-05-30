@@ -14,9 +14,13 @@ import {
   UserOutlined,
   ShareAltOutlined,
   CheckOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
   EditOutlined,
+  LoadingOutlined,
   RedoOutlined,
   DeleteOutlined,
+  PaperClipOutlined,
 } from '@ant-design/icons';
 import SupCitation from './SupCitation';
 import type { ChatMessageItem } from '../types';
@@ -76,6 +80,47 @@ const ChatMessageList = (props: ChatMessageListProps) => {
     (antdTheme as { id?: number })?.id === 0
       ? 'x-markdown-light'
       : 'x-markdown-dark';
+
+  const renderTraceIcon = (status: string) => {
+    if (status === 'running') {
+      return <LoadingOutlined spin style={{ color: '#1677ff' }} />;
+    }
+    if (status === 'success') {
+      return <CheckOutlined style={{ color: '#52c41a' }} />;
+    }
+    if (status === 'error') {
+      return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
+    }
+    return <ClockCircleOutlined style={{ color: '#8c8c8c' }} />;
+  };
+
+  const renderTraceEvents = (
+    events: NonNullable<ChatMessageItem['trace_events']>
+  ) => (
+    <div style={{ display: 'grid', gap: 8 }}>
+      {events.map((event, index) => (
+        <div
+          key={`${event.stage}-${event.status}-${index}`}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '20px minmax(0, 1fr)',
+            gap: 8,
+            alignItems: 'start',
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}
+        >
+          <span style={{ paddingTop: 1 }}>{renderTraceIcon(event.status)}</span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ color: '#262626' }}>{event.title}</span>
+            {event.detail && (
+              <span style={{ color: '#8c8c8c' }}>：{event.detail}</span>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 
   const createUserActionItems = (content: string) => [
     {
@@ -211,6 +256,46 @@ const ChatMessageList = (props: ChatMessageListProps) => {
                   display: 'block',
                 }}
               />
+            )}
+            {msg.sender === 'user' && (msg.attachments?.length ?? 0) > 0 && (
+              <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
+                {msg.attachments?.map((file) => (
+                  <div
+                    key={file.file_id}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      maxWidth: '100%',
+                      padding: '4px 8px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 4,
+                      background: '#fafafa',
+                      fontSize: 13,
+                    }}
+                  >
+                    <PaperClipOutlined />
+                    <span
+                      style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {file.original_filename}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {msg.sender === 'ai' && (msg.trace_events?.length ?? 0) > 0 && (
+              <Think
+                title="执行过程"
+                loading={msg.id === -1 && isStreaming}
+                defaultExpanded={msg.id === -1}
+              >
+                {renderTraceEvents(msg.trace_events ?? [])}
+              </Think>
             )}
             {msg.sender === 'ai' && msg.reasoning_content && (
               <Think

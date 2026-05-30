@@ -1,4 +1,9 @@
-import type { KnowledgeCitation, Message as ApiMessage } from '../../api/qaApi';
+import type {
+  KnowledgeCitation,
+  Message as ApiMessage,
+  QaAttachment,
+  StreamTraceEvent,
+} from '../../api/qaApi';
 
 export interface ChatMessageItem {
   id: number;
@@ -7,7 +12,9 @@ export interface ChatMessageItem {
   sender: 'user' | 'ai';
   timestamp: Date;
   image_url?: string;
+  attachments?: QaAttachment[];
   citations?: KnowledgeCitation[];
+  trace_events?: StreamTraceEvent[];
 }
 
 export interface ChatMessageFormatterParams {
@@ -16,4 +23,5 @@ export interface ChatMessageFormatterParams {
   isStreaming: boolean;
   streamingContent: string;
   streamingReasoningContent: string;
+  streamingTraceEvents: StreamTraceEvent[];
 }

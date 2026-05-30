@@ -16,18 +16,20 @@ export const formatChatMessages = (
     isStreaming,
     streamingContent,
     streamingReasoningContent,
+    streamingTraceEvents,
   } = params;
 
   if (!currentConversationId) {
     return [DEFAULT_GREETING_MESSAGE];
   }
 
-  const formatted = messages.map((msg) => ({
+  const formatted: ChatMessageItem[] = messages.map((msg) => ({
     id: msg.id,
     content: msg.content,
     sender: msg.role === 'user' ? ('user' as const) : ('ai' as const),
     timestamp: new Date(msg.create_time),
     image_url: msg.image_url ?? undefined,
+    attachments: msg.attachments ?? undefined,
     citations: msg.citations ?? undefined,
     reasoning_content: msg.reasoning_content ?? undefined,
   }));
@@ -41,6 +43,7 @@ export const formatChatMessages = (
       image_url: undefined,
       citations: undefined,
       reasoning_content: streamingReasoningContent || undefined,
+      trace_events: streamingTraceEvents,
     });
   }
 

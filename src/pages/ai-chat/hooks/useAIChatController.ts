@@ -6,8 +6,16 @@ import type { GetProp, GetRef } from 'antd';
 import { useConversationStore } from '../../../store/useConversationStore';
 import { useModelStore } from '../../../store/useModelStore';
 import qaApi from '../../../api/qaApi';
+import type { QaAttachment } from '../../../api/qaApi';
 import { formatChatMessages } from '../utils/chatMessage';
-import { fileToBase64, getFirstImageFile, validateImageSize } from '../utils/imageFile';
+import {
+  fileToBase64,
+  getDocumentFiles,
+  getFirstImageFile,
+  getUnsupportedNonImageFiles,
+  validateDocumentSize,
+  validateImageSize,
+} from '../utils/imageFile';
 
 const useAIChatController = () => {
   const {
@@ -19,6 +27,7 @@ const useAIChatController = () => {
     clearMessagesError,
     streamingContent,
     streamingReasoningContent,
+    streamingTraceEvents,
     isStreaming,
     fetchConversations,
     setCurrentConversation,
@@ -55,6 +64,7 @@ const useAIChatController = () => {
         isStreaming,
         streamingContent,
         streamingReasoningContent,
+        streamingTraceEvents,
       }),
     [
       currentConversationId,
@@ -62,6 +72,7 @@ const useAIChatController = () => {
       isStreaming,
       streamingContent,
       streamingReasoningContent,
+      streamingTraceEvents,
     ]
   );
 
@@ -108,10 +119,34 @@ const useAIChatController = () => {
   const handleSubmit = async (text: string) => {
     if (!text.trim()) return;
 
+    const unsupportedFiles = getUnsupportedNonImageFiles(attachmentItems);
+    if (unsupportedFiles.length > 0) {
+      message.error('仅支持 PDF、TXT、MD、DOCX 文档附件，图片请用于图像识别');
+      return;
+    }
+    const documentFiles = getDocumentFiles(attachmentItems);
+    const oversizedDocument = documentFiles.find((file) => !validateDocumentSize(file));
+    if (oversizedDocument) {
+      message.error('文档大小不能超过 20MB');
+      return;
+    }
+    let uploadedAttachments: QaAttachment[] = [];
+    if (documentFiles.length > 0) {
+      try {
+        uploadedAttachments = await Promise.all(
+          documentFiles.map((file) => qaApi.uploadAttachment(file))
+        );
+      } catch {
+        message.error('附件上传失败，请重试');
+        return;
+      }
+    }
+
     const options = {
       use_rag: useRag,
       use_image: useImage,
       image_base64: imageBase64 ?? undefined,
+      attachments: uploadedAttachments,
       model_name: currentModel,
       enable_thinking: useDeepSearch,
       preserve_thinking: useDeepSearch,
