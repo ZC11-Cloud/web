@@ -304,6 +304,9 @@ const ImageRecognition = () => {
                   <Descriptions.Item label="当前模型">
                     {currentModel.weights_name}
                   </Descriptions.Item>
+                  <Descriptions.Item label="模型路径">
+                    <span className="model-path">{currentModel.weights_path}</span>
+                  </Descriptions.Item>
                   <Descriptions.Item label="更新时间">
                     {currentModel.updated_at
                       ? new Date(currentModel.updated_at).toLocaleString()

@@ -14,6 +14,13 @@
   margin-top: 24px;
 }
 
+.model-path {
+  display: inline-block;
+  max-width: 100%;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
 .result-card {
   min-height: 400px;
 }
